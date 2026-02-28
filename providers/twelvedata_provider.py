@@ -2,6 +2,7 @@
 import pandas as pd
 import streamlit as st
 import requests
+import time
 from typing import Optional, Tuple, List, Dict, Any
 from utils.error_handler import error_handler
 from providers.base_provider import BaseProvider, count_api_call
@@ -43,12 +44,13 @@ def convert_symbol_for_twelvedata(symbol: str) -> str:
 class TwelveDataProvider(BaseProvider):
     """Provider TwelveData con caching su disco"""
     
-    def __init__(self):
-        super().__init__("twelvedata", ttl=600)
+    def __init__(self, ttl: int = 600, max_retries: int = 3):
+        super().__init__("twelvedata", ttl=ttl)
+        self.max_retries = max_retries
     
     @count_api_call('twelvedata', 'time_series')
     def _fetch_time_series(self, symbol: str, interval: str, outputsize: int):
-        """Fetch interno senza decoratori"""
+        """Fetch interno con retry automatico"""
         if not TWELVEDATA_KEY:
             return None, "NO_KEY"
         
@@ -64,59 +66,72 @@ class TwelveDataProvider(BaseProvider):
             "timezone": "UTC"
         }
         
-        try:
-            session = http_session()
-            response = session.get(url, params=params, timeout=15)
-            
-            if response.status_code == 429:
-                return None, "RATE_LIMIT"
-            
-            if response.status_code != 200:
-                return None, f"HTTP_{response.status_code}"
-            
-            data = response.json()
-            
-            if "values" not in data:
-                return None, "NO_VALUES"
-            
-            values = data.get("values")
-            if not values:
-                return None, "NO_DATA"
-            
-            df = pd.DataFrame(values)
-            df = normalize_ohlcv_df(df)
-            
-            return df, "TwelveData"
-            
-        except requests.exceptions.Timeout:
-            return None, "TIMEOUT"
-        except requests.exceptions.ConnectionError:
-            return None, "CONNECTION_ERROR"
-        except Exception as e:
-            error_handler.logger.error(f"TwelveData error: {e}")
-            return None, "ERROR"
+        # Retry logic
+        for attempt in range(self.max_retries):
+            try:
+                session = http_session()
+                response = session.get(url, params=params, timeout=15)
+                
+                if response.status_code == 429:
+                    wait_time = 60 * (attempt + 1)  # Exponential backoff
+                    if attempt < self.max_retries - 1:
+                        time.sleep(wait_time)
+                        continue
+                    return None, "RATE_LIMIT"
+                
+                if response.status_code != 200:
+                    return None, f"HTTP_{response.status_code}"
+                
+                data = response.json()
+                
+                if "values" not in data:
+                    return None, "NO_VALUES"
+                
+                values = data.get("values")
+                if not values:
+                    return None, "NO_DATA"
+                
+                df = pd.DataFrame(values)
+                df = normalize_ohlcv_df(df)
+                
+                return df, "TwelveData"
+                
+            except requests.exceptions.Timeout:
+                if attempt < self.max_retries - 1:
+                    time.sleep(2)
+                    continue
+                return None, "TIMEOUT"
+            except requests.exceptions.ConnectionError:
+                if attempt < self.max_retries - 1:
+                    time.sleep(2)
+                    continue
+                return None, "CONNECTION_ERROR"
+            except Exception as e:
+                error_handler.logger.error(f"TwelveData error: {e}")
+                return None, "ERROR"
+        
+        return None, "MAX_RETRIES"
     
+    @st.cache_data(ttl=600, show_spinner=False)
     def fetch_15m(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 15m con 5000 candles"""
+        """Fetch 15m con 5000 candles - con caching Streamlit"""
         return self.fetch(self._fetch_time_series, symbol, "15min", 5000)
     
+    @st.cache_data(ttl=600, show_spinner=False)
     def fetch_1h(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 1h con 2000 candles"""
+        """Fetch 1h con 2000 candles - con caching Streamlit"""
         return self.fetch(self._fetch_time_series, symbol, "1h", 2000)
     
+    @st.cache_data(ttl=600, show_spinner=False)
     def fetch_4h(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 4h con 1000 candles"""
+        """Fetch 4h con 1000 candles - con caching Streamlit"""
         return self.fetch(self._fetch_time_series, symbol, "4h", 1000)
     
+    @st.cache_data(ttl=3600, show_spinner=False)
     def search_symbols(self, query: str, outputsize: int = 20) -> List[Dict[str, str]]:
-        """Cerca simboli su TwelveData"""
+        """Cerca simboli su TwelveData con caching"""
         if not TWELVEDATA_KEY or not query or len(query.strip()) < 2:
             return []
-        
-        cache_key = self.get_cache_key("search", query, outputsize)
-        cached = self.get_from_cache(cache_key)
-        if cached is not None:
-            return cached
         
         url = "https://api.twelvedata.com/symbol_search"
         params = {
@@ -165,7 +180,6 @@ class TwelveDataProvider(BaseProvider):
                     "currency": currency
                 })
             
-            self.save_to_cache(cache_key, results)
             return results
             
         except Exception as e:
