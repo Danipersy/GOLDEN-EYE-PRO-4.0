@@ -101,8 +101,8 @@ def show_page():
         for result in filtered:
             render_result_card(result)
     
-      else:
-        # Schermata iniziale elegante - CORRETTA
+    else:
+        # Schermata iniziale elegante
         st.markdown(f"""
         <div style="
             text-align: center;
