@@ -33,7 +33,6 @@ class ErrorHandler:
         try:
             return func()
         except Exception as e:
-            # Logga l'errore
             error_detail = {
                 'timestamp': datetime.now().isoformat(),
                 'error': str(e),
@@ -43,7 +42,6 @@ class ErrorHandler:
             self.log.append(error_detail)
             self.logger.error(f"{error_msg}: {str(e)}\n{traceback.format_exc()}")
             
-            # Mostra messaggio user-friendly
             if show_error:
                 if "rate limit" in str(e).lower():
                     st.warning("⏳ Rate limit raggiunto. Attendi qualche secondo.")
@@ -74,7 +72,7 @@ class ErrorHandler:
         """Mostra riepilogo errori (per debug)"""
         if self.log:
             with st.expander("🔧 Debug Errori", expanded=False):
-                for i, err in enumerate(self.log[-5:]):  # Ultimi 5 errori
+                for i, err in enumerate(self.log[-5:]):
                     st.markdown(f"**{i+1}. {err['timestamp']}**")
                     st.code(err['error'])
                     if st.checkbox(f"Mostra traceback {i+1}", key=f"tb_{i}"):
