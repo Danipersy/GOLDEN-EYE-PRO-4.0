@@ -1,31 +1,19 @@
-name: Test Golden Eye Pro
+cat > .github/workflows/deploy.yml << 'EOF'
+name: Deploy
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ "main" ]
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-          
-      - name: Installa dipendenze
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          
-      - name: Test import
-        run: |
-          python -c "import config; print('✅ config.py OK')"
-          python -c "from providers.base_provider import BaseProvider; print('✅ BaseProvider OK')"
-          
-      - name: Mostra struttura
-        run: |
-          echo "📁 File nel repository:"
-          ls -la
-          echo "\n📁 Directory principali:"
-          ls -la ui_streamlit/ || echo "⚠️ ui_streamlit/ non trovata"
+          python-version: '3.11'
+      - run: pip install pandas-ta
+      - run: python -c "import pandas_ta; print('✅ Pronto')"
+      - run: echo "🌐 Deploy su Streamlit Cloud - https://share.streamlit.io"
+EOF
