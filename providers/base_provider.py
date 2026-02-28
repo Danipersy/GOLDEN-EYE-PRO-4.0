@@ -11,13 +11,12 @@ class APIUsageTracker:
     """Traccia l'utilizzo delle API con supporto per tutti i provider"""
     
     def __init__(self):
-        # Inizializza SOLO se non esiste già
         if 'api_usage' not in st.session_state:
             st.session_state.api_usage = {
                 'twelvedata': {
                     'today': 0, 
                     'total': 0, 
-                    'last_reset': date.today().isoformat(),  # Usa stringa ISO per serializzazione
+                    'last_reset': date.today().isoformat(),
                     'name': 'TwelveData',
                     'icon': '🔵',
                     'color': '#3b82f6'
@@ -55,7 +54,6 @@ class APIUsageTracker:
         """Resetta il contatore giornaliero se necessario"""
         today = date.today()
         
-        # Converti la stringa ISO in oggetto date
         last_reset_str = st.session_state.api_usage[provider]['last_reset']
         if isinstance(last_reset_str, str):
             last_reset = date.fromisoformat(last_reset_str)
@@ -75,16 +73,14 @@ class APIUsageTracker:
         st.session_state.api_usage[provider]['today'] += 1
         st.session_state.api_usage[provider]['total'] += 1
         
-        # Log della chiamata
         st.session_state.api_calls_log.append({
-            'time': datetime.now().isoformat(),  # Usa stringa ISO
+            'time': datetime.now().isoformat(),
             'provider': provider,
             'endpoint': endpoint,
             'symbol': symbol,
             'cumulative_today': st.session_state.api_usage[provider]['today']
         })
         
-        # Mantieni solo ultime 100 chiamate nel log
         if len(st.session_state.api_calls_log) > 100:
             st.session_state.api_calls_log = st.session_state.api_calls_log[-100:]
     
@@ -115,16 +111,16 @@ class APIUsageTracker:
                 'description': '500 chiamate/giorno, 5/minuto'
             },
             'yahoo': {
-                'daily': None,  # Illimitato
+                'daily': None,
                 'minute': None, 
                 'cost_per_call': 0,
-                'description': 'Rate limit variabile, usare con cautela'
+                'description': 'Rate limit variabile'
             },
             'marketaux': {
                 'daily': 100, 
                 'minute': 10, 
                 'cost_per_call': 1,
-                'description': '100 chiamate/giorno, 10/minuto (gratis)'
+                'description': '100 chiamate/giorno'
             }
         }
         return limits.get(provider, {'daily': '?', 'minute': '?', 'cost_per_call': 0})
@@ -162,7 +158,6 @@ class APIUsageTracker:
 # Istanza globale
 tracker = APIUsageTracker()
 
-# Decorator per contare chiamate
 def count_api_call(provider, endpoint=""):
     """Decorator per contare le chiamate API"""
     from functools import wraps
@@ -170,7 +165,6 @@ def count_api_call(provider, endpoint=""):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            # Estrai symbol se presente (per log più dettagliato)
             symbol = ""
             if args and len(args) > 0:
                 symbol = str(args[0])
@@ -208,7 +202,6 @@ class BaseProvider:
         if not os.path.exists(cache_file):
             return None
         
-        # Verifica TTL
         mod_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
         if datetime.now() - mod_time > timedelta(seconds=self.ttl):
             os.remove(cache_file)
@@ -234,19 +227,16 @@ class BaseProvider:
         """Fetch con caching manuale"""
         cache_key = self.get_cache_key(*args, **kwargs)
         
-        # Prova cache
         cached = self.get_from_cache(cache_key)
         if cached is not None:
             return cached
         
-        # Esegui funzione
         result = error_handler.safe_execute(
             lambda: func(*args, **kwargs),
             fallback=None,
             error_msg=f"Errore in {self.name}"
         )
         
-        # Salva in cache
         if result is not None:
             self.save_to_cache(cache_key, result)
         
