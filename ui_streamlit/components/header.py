@@ -47,8 +47,8 @@ def render_header(page_title, page_icon):
     
     market = get_market_status()
     
-    # TOP BAR
-    market_bar_html = f"""
+    # TOP BAR - versione SEMPLIFICATA (senza f-string annidate)
+    st.markdown(f"""
     <div style="
         background: rgba(26, 31, 46, 0.8);
         backdrop-filter: blur(10px);
@@ -63,37 +63,35 @@ def render_header(page_title, page_icon):
             <div style="display: flex; gap: 30px; flex-wrap: wrap;">
                 <!-- Ora -->
                 <div>
-                    <span style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;">🕒 Ora</span>
-                    <div style="font-size: 1.8rem; font-weight: 800; color: #f0b90b;">
-                        {datetime.now().strftime("%H:%M")}
-                    </div>
-                    <span style="color: #94a3b8; font-size: 0.8rem;">{datetime.now().strftime("%d %b %Y")}</span>
+                    <div style="color: #94a3b8; font-size: 0.75rem;">🕒 Ora</div>
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #f0b90b;">{datetime.now().strftime("%H:%M")}</div>
+                    <div style="color: #94a3b8; font-size: 0.8rem;">{datetime.now().strftime("%d %b %Y")}</div>
                 </div>
                 
                 <!-- Crypto -->
                 <div>
-                    <span style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;">🪙 Crypto</span>
+                    <div style="color: #94a3b8; font-size: 0.75rem;">🪙 Crypto</div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 1.2rem;">{market['crypto']['icon']}</span>
-                        <span style="font-size: 1.1rem; font-weight: 600; color: {market['crypto']['color']};">{market['crypto']['status']}</span>
+                        <span>{market['crypto']['icon']}</span>
+                        <span style="font-weight: 600; color: {market['crypto']['color']};">{market['crypto']['status']}</span>
                     </div>
                 </div>
                 
                 <!-- Azioni -->
                 <div>
-                    <span style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;">📈 Azioni</span>
+                    <div style="color: #94a3b8; font-size: 0.75rem;">📈 Azioni</div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 1.2rem;">{market['stocks']['icon']}</span>
-                        <span style="font-size: 1.1rem; font-weight: 600; color: {market['stocks']['color']};">{market['stocks']['status']}</span>
+                        <span>{market['stocks']['icon']}</span>
+                        <span style="font-weight: 600; color: {market['stocks']['color']};">{market['stocks']['status']}</span>
                     </div>
                 </div>
                 
                 <!-- Forex -->
                 <div>
-                    <span style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;">💱 Forex</span>
+                    <div style="color: #94a3b8; font-size: 0.75rem;">💱 Forex</div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 1.2rem;">{market['forex']['icon']}</span>
-                        <span style="font-size: 1.1rem; font-weight: 600; color: {market['forex']['color']};">{market['forex']['status']}</span>
+                        <span>{market['forex']['icon']}</span>
+                        <span style="font-weight: 600; color: {market['forex']['color']};">{market['forex']['status']}</span>
                     </div>
                 </div>
             </div>
@@ -109,10 +107,7 @@ def render_header(page_title, page_icon):
             </div>
         </div>
     </div>
-    """
-    
-    # QUESTO È FONDAMENTALE - usa st.markdown con unsafe_allow_html
-    st.markdown(market_bar_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
     # HEADER PAGINA
     col1, col2, col3 = st.columns([2, 1, 1])
@@ -143,10 +138,8 @@ def render_header(page_title, page_icon):
             border: 1px solid #3c3c4a;
             text-align: center;
         ">
-            <span style="color: #94a3b8; font-size: 0.8rem;">📊 WATCHLIST</span>
-            <div style="font-size: 2.2rem; font-weight: 800; color: #f0b90b;">
-                {len(st.session_state.watchlist)}
-            </div>
+            <div style="color: #94a3b8; font-size: 0.8rem;">📊 WATCHLIST</div>
+            <div style="font-size: 2.2rem; font-weight: 800; color: #f0b90b;">{len(st.session_state.watchlist)}</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -166,10 +159,8 @@ def render_header(page_title, page_icon):
             border: 1px solid #3c3c4a;
             text-align: center;
         ">
-            <span style="color: #94a3b8; font-size: 0.8rem;">⏱️ ULTIMO SCAN</span>
-            <div style="font-size: 1.3rem; font-weight: 700; color: #94a3b8;">
-                {scan_text}
-            </div>
+            <div style="color: #94a3b8; font-size: 0.8rem;">⏱️ ULTIMO SCAN</div>
+            <div style="font-size: 1.3rem; font-weight: 700; color: #94a3b8;">{scan_text}</div>
         </div>
         """, unsafe_allow_html=True)
     
