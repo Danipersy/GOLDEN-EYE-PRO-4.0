@@ -15,11 +15,12 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# CSS minimale per lo sfondo (opzionale)
+# CSS leggero per uniformare sfondo e nascondere sidebar
 st.markdown("""
 <style>
-    .main { background: #0A0A0F; }
-    section[data-testid="stSidebar"] { display: none !important; }
+    .main { background-color: #0E1117; }
+    section[data-testid="stSidebar"] { display: none; }
+    div[data-testid="stMetricValue"] { font-size: 1.2rem; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -37,28 +38,26 @@ if 'last_scan_time' not in st.session_state:
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
 
-# Header con logo e contatore watchlist
-col1, col2, col3 = st.columns([1, 4, 1])
+# ==================== HEADER ====================
+col1, col2, col3 = st.columns([1, 2, 1])
 with col1:
-    st.markdown("### 👁️ **GOLDEN EYE**")
+    st.markdown("## 👁️ **GOLDEN EYE**")
 with col3:
-    st.markdown(f"### 📊 {len(st.session_state.watchlist)}")
+    st.markdown(f"## 📊 {len(st.session_state.watchlist)}")
+st.divider()
 
-st.markdown("---")
-
-# Menu principale con pulsanti
-cols = st.columns(6)
+# ==================== MENU ====================
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
+cols = st.columns(len(menu_items))
 for i, item in enumerate(menu_items):
     with cols[i]:
         if st.button(item, use_container_width=True,
                      type="primary" if st.session_state.current_page == item else "secondary"):
             st.session_state.current_page = item
             st.rerun()
+st.divider()
 
-st.markdown("---")
-
-# Market Info Bar (usa st.metric per una visualizzazione pulita)
+# ==================== MARKET BAR ====================
 now = datetime.now()
 weekday = now.weekday()
 hour = now.hour
@@ -68,7 +67,6 @@ if weekday < 5 and 9 <= hour <= 16:
     stock_status = "🟢 APERTO"
 else:
     stock_status = "🔴 CHIUSO" + (" (Weekend)" if weekday >= 5 else "")
-
 forex_status = "🟢 APERTO" if weekday < 5 else "🔴 CHIUSO"
 
 cols = st.columns(5)
@@ -82,10 +80,9 @@ with cols[3]:
     st.metric("💱 Forex", forex_status)
 with cols[4]:
     st.metric("⚡ Versione", "4.0.0")
+st.divider()
 
-st.markdown("---")
-
-# Routing pagine
+# ==================== ROUTING PAGINE ====================
 try:
     if st.session_state.current_page == "SCAN":
         from ui_streamlit.pages.scan import show_page
@@ -123,8 +120,8 @@ try:
 except Exception as e:
     st.error(f"Errore: {e}")
 
-# Footer
-st.markdown("---")
+# ==================== FOOTER ====================
+st.divider()
 cols = st.columns(3)
 with cols[0]:
     st.caption(f"📅 {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
