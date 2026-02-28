@@ -1,4 +1,3 @@
-# ui_streamlit/pages/__init__.py
 """Pages package for Golden Eye Pro"""
 
 import streamlit as st
@@ -16,51 +15,27 @@ try:
     from ui_streamlit.pages.api_dashboard import render as render_api
     from ui_streamlit.pages.info import render as render_info
     from ui_streamlit.pages.settings import render as render_settings
-    from ui_streamlit.pages.test import render as render_test
     
     print("✅ Pagine importate con successo")
 except ImportError as e:
     print(f"⚠️ Errore import pagine: {e}")
 
-# ============================================
-# FUNZIONE PRINCIPALE RICHIESTA DA App.py
-# ============================================
+# Funzione principale richiesta da App.py
 def render_main_view():
-    """
-    Funzione principale per la vista unificata.
-    Questa funzione viene chiamata da App.py
-    """
-    # Determina quale vista mostrare in base a session_state
-    current_view = st.session_state.get('current_view', 'scan')
+    """Vista principale"""
+    current_page = st.session_state.get('current_page', 'SCAN')
     
-    if current_view == 'scan':
-        try:
-            show_scan()
-        except:
-            st.subheader("🔍 SCAN Mercati")
-            st.info("Caricamento scan in corso...")
-    
-    elif current_view == 'detail':
+    if current_page == "SCAN" and 'show_scan' in dir():
+        show_scan()
+    elif current_page == "DETTAGLIO" and 'show_dettaglio' in dir():
         asset = st.session_state.get('selected_asset', 'BTC-USD')
-        try:
-            show_dettaglio(asset)
-        except:
-            st.subheader(f"📊 Dettaglio {asset}")
-            st.info("Caricamento dettaglio in corso...")
-    
-    elif current_view == 'watchlist':
-        try:
-            show_watchlist()
-        except:
-            st.subheader("📋 Watchlist")
-            st.info("Caricamento watchlist in corso...")
-    
+        show_dettaglio(asset)
+    elif current_page == "WATCHLIST" and 'show_watchlist' in dir():
+        show_watchlist()
     else:
-        st.info(f"Vista {current_view} in sviluppo")
+        st.info(f"Pagina {current_page} in caricamento...")
 
-# ============================================
-# DIZIONARIO PER ROUTING FACILE
-# ============================================
+# Dizionario per routing facile
 PAGE_FUNCTIONS = {
     "SCAN": show_scan if 'show_scan' in dir() else None,
     "DETTAGLIO": show_dettaglio if 'show_dettaglio' in dir() else None,
@@ -73,18 +48,15 @@ PAGE_FUNCTIONS = {
     "API": render_api if 'render_api' in dir() else None,
     "INFO": render_info if 'render_info' in dir() else None,
     "SETTINGS": render_settings if 'render_settings' in dir() else None,
-    "TEST": render_test if 'render_test' in dir() else None,
 }
 
-# ============================================
-# ESPORTAZIONI
-# ============================================
+# Esportazioni
 __all__ = [
-    'render_main_view',  # Questa è quella che cerca App.py!
+    'render_main_view',
     'show_scan', 'show_dettaglio', 'show_watchlist',
     'render_validazione', 'render_ottimizzazione', 'render_money',
     'render_paper', 'render_auto', 'render_api',
-    'render_info', 'render_settings', 'render_test',
+    'render_info', 'render_settings',
     'PAGE_FUNCTIONS'
 ]
 
