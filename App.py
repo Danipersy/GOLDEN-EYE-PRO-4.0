@@ -52,8 +52,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Menu principale
-cols = st.columns(5)
-menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING"]
+cols = st.columns(6)
+menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "📊 API"]
 for i, item in enumerate(menu_items):
     with cols[i]:
         if st.button(item, use_container_width=True, 
@@ -79,7 +79,7 @@ try:
     
     elif st.session_state.current_page == "STRUMENTI":
         st.subheader("⚙️ Strumenti")
-        tabs = st.tabs(["📊 Validazione", "🎯 Ottimizzazione", "💰 Money Management", "📊 API"])
+        tabs = st.tabs(["📊 Validazione", "🎯 Ottimizzazione", "💰 Money Management"])
         
         with tabs[0]:
             from ui_streamlit.pages.validazione import render
@@ -91,10 +91,6 @@ try:
         
         with tabs[2]:
             from ui_streamlit.pages.money_management import render
-            render()
-        
-        with tabs[3]:  # Quarto tab - API Dashboard
-            from ui_streamlit.pages.api_dashboard import render
             render()
     
     elif st.session_state.current_page == "TRADING":
@@ -108,6 +104,10 @@ try:
         with tabs[1]:
             from ui_streamlit.pages.auto_trader import render
             render()
+    
+    elif st.session_state.current_page == "📊 API":
+        from ui_streamlit.pages.api_dashboard import render
+        render()
             
 except Exception as e:
     st.error(f"Errore: {e}")
