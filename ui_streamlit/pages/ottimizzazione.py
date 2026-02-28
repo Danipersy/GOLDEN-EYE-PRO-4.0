@@ -1,4 +1,3 @@
-# ui_streamlit/pages/ottimizzazione.py
 import streamlit as st
 from strategy.optimizer import render_optimizer_panel
 
