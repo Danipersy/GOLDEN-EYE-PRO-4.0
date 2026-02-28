@@ -46,6 +46,7 @@ def show_page():
                         level = 1
                     
                     result['level'] = level
+                    result['score'] = abs(change) * 10
                     results.append(result)
                 
                 time.sleep(0.5)
