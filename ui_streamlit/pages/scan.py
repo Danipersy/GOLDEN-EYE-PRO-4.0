@@ -6,16 +6,7 @@ from ui_streamlit.components.scan_filters import render_scan_filters
 from ui_streamlit.components.card import render_result_card
 
 def show_page():
-    st.markdown("""
-    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
-        <h1 style="margin:0; font-size: 2.5rem; background: linear-gradient(135deg, #fff, #f0f6fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            🔍 RADAR SCAN
-        </h1>
-        <div class="live-badge">
-            <span style="color: #00ff88;">●</span> LIVE
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.subheader("🔍 RADAR SCAN", divider="orange")
     
     # Filtri e scan button
     col_f1, col_f2 = st.columns([3, 1])
@@ -24,15 +15,16 @@ def show_page():
         filters = render_scan_filters()
     
     with col_f2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🚀 AVVIA SCAN PREMIUM", use_container_width=True, type="primary"):
-            with st.spinner("🔄 Scansionando mercati globali..."):
+        st.write("")  # Spazio
+        st.write("")  # Spazio
+        if st.button("🚀 AVVIA SCAN", use_container_width=True, type="primary"):
+            with st.spinner("Scansionando mercati..."):
                 results = []
                 progress_bar = st.progress(0)
                 
                 for i, symbol in enumerate(st.session_state.watchlist):
                     progress_bar.progress((i + 1) / len(st.session_state.watchlist), 
-                                         text=f"📡 Scan {i+1}/{len(st.session_state.watchlist)}: **{symbol}**")
+                                         text=f"Scan {i+1}/{len(st.session_state.watchlist)}: {symbol}")
                     
                     result = scan_symbol(symbol, "15m", "1d")
                     if result and 'error' not in result:
@@ -59,38 +51,32 @@ def show_page():
                 st.session_state.last_scan_time = datetime.now()
                 st.rerun()
     
-    st.markdown("---")
+    st.divider()
     
     # Risultati
     if st.session_state.get('scan_results'):
-        # Statistiche in card PRO
+        # Statistiche
         level_counts = {}
         for r in st.session_state.scan_results:
             level = r.get('level', 1)
             level_counts[level] = level_counts.get(level, 0) + 1
         
-        st.markdown("### 📊 Panoramica Scan")
+        st.subheader("📊 Riepilogo")
         
         cols = st.columns(5)
-        metrics = [
-            ("🔍 TOTALE", len(st.session_state.scan_results), "#f0b90b"),
-            ("🔥 FORTE", level_counts.get(5, 0), "#00ff88"),
-            ("🟡 MEDIO", level_counts.get(4, 0), "#f0b90b"),
-            ("📊 MOMENTUM", level_counts.get(3, 0), "#3b82f6"),
-            ("📈 TENDENZA", level_counts.get(2, 0) + level_counts.get(1, 0), "#8b5cf6"),
-        ]
+        with cols[0]:
+            st.metric("Totale", len(st.session_state.scan_results))
+        with cols[1]:
+            st.metric("🔥 L5", level_counts.get(5, 0))
+        with cols[2]:
+            st.metric("🟡 L4", level_counts.get(4, 0))
+        with cols[3]:
+            st.metric("📊 L3", level_counts.get(3, 0))
+        with cols[4]:
+            st.metric("📈 L2", level_counts.get(2, 0) + level_counts.get(1, 0))
         
-        for col, (label, value, color) in zip(cols, metrics):
-            with col:
-                st.markdown(f"""
-                <div class="metric-card-pro" style="text-align: center;">
-                    <div style="color: #94a3b8; font-size: 0.8rem;">{label}</div>
-                    <div style="font-size: 2.2rem; font-weight: 800; color: {color};">{value}</div>
-                </div>
-                """, unsafe_allow_html=True)
-        
-        st.markdown("---")
-        st.markdown("### 🎯 Segnali in Tempo Reale")
+        st.divider()
+        st.subheader("🎯 Segnali")
         
         # Filtra risultati
         filtered = [
@@ -100,30 +86,14 @@ def show_page():
         
         for result in filtered:
             render_result_card(result)
+            
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                if st.button(f"📊 Analizza {result['symbol']}", key=f"btn_{result['symbol']}", use_container_width=True):
+                    st.session_state.selected_asset = result['symbol']
+                    st.session_state.radar_select = result['symbol']
+                    st.session_state.current_page = "DETTAGLIO"
+                    st.rerun()
     
     else:
-        # Schermata iniziale elegante
-        st.markdown(f"""
-        <div style="
-            text-align: center;
-            padding: 80px 20px;
-            background: linear-gradient(135deg, rgba(26, 31, 58, 0.5), rgba(18, 23, 40, 0.5));
-            border-radius: 40px;
-            margin: 40px 0;
-            border: 2px dashed rgba(240, 185, 11, 0.3);
-        ">
-            <div style="font-size: 5rem; margin-bottom: 20px;">📡</div>
-            <h2 style="color: #f0b90b; font-size: 2rem;">Pronto per lo Scan Premium</h2>
-            <p style="color: #94a3b8; font-size: 1.1rem;">Clicca "AVVIA SCAN PREMIUM" per iniziare il monitoraggio</p>
-            <div style="
-                background: rgba(240, 185, 11, 0.1);
-                border-radius: 40px;
-                padding: 15px 30px;
-                display: inline-block;
-                margin-top: 20px;
-                border: 1px solid #f0b90b;
-            ">
-                <span style="color: #f0b90b;">📊 Monitorerai {len(st.session_state.watchlist)} asset in tempo reale</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.info("👆 Clicca 'AVVIA SCAN' per iniziare")
