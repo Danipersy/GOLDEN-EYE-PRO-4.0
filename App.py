@@ -15,6 +15,125 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# CSS GLOBALE PROFESSIONALE
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    /* RESET E BASE */
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .main {
+        background: radial-gradient(circle at 0% 0%, #1a1f35, #0a0e1a);
+        padding: 0 !important;
+    }
+    
+    .stApp {
+        background: transparent;
+    }
+    
+    /* NASCONDI SIDEBAR */
+    section[data-testid="stSidebar"] {
+        display: none !important;
+    }
+    
+    /* HEADER PREMIUM */
+    .premium-header {
+        background: linear-gradient(90deg, rgba(18, 23, 40, 0.95), rgba(26, 31, 58, 0.95));
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(240, 185, 11, 0.3);
+        padding: 0 32px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    
+    /* TOP BAR MERCATI */
+    .market-bar {
+        background: linear-gradient(135deg, #1E2338, #161B2F);
+        border-radius: 20px;
+        padding: 20px 30px;
+        margin: 100px 32px 30px 32px;
+        border: 1px solid rgba(240, 185, 11, 0.2);
+        border-left: 6px solid #f0b90b;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        backdrop-filter: blur(10px);
+    }
+    
+    /* CARD METRICHE */
+    .metric-card-pro {
+        background: linear-gradient(135deg, #1E2338, #161B2F);
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid rgba(240, 185, 11, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .metric-card-pro::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: left 0.5s;
+    }
+    
+    .metric-card-pro:hover::before {
+        left: 100%;
+    }
+    
+    .metric-card-pro:hover {
+        transform: translateY(-5px);
+        border-color: #f0b90b;
+        box-shadow: 0 20px 40px rgba(240, 185, 11, 0.2);
+    }
+    
+    /* BADGE LIVE */
+    .live-badge {
+        background: linear-gradient(135deg, #00ff8820, #00ff8805);
+        border: 1px solid #00ff88;
+        border-radius: 30px;
+        padding: 4px 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
+    }
+    
+    /* FOOTER */
+    .premium-footer {
+        background: linear-gradient(90deg, #121728, #1A1F3A);
+        border-top: 1px solid rgba(240, 185, 11, 0.3);
+        padding: 16px 32px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        color: #94a3b8;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        z-index: 9999;
+        backdrop-filter: blur(10px);
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Inizializzazione session state
 if 'watchlist' not in st.session_state:
     st.session_state.watchlist = ['BTC-USD', 'ETH-USD', 'BNB-USD', 'SOL-USD', 'ADA-USD']
@@ -29,109 +148,24 @@ if 'last_scan_time' not in st.session_state:
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
 
-# CSS
+# ============================================
+# HEADER CON MENU
+# ============================================
 st.markdown("""
-<style>
-    /* Reset */
-    .main { background: #0A0A0F; padding: 0 !important; }
-    .stApp { background: #0A0A0F; }
-    section[data-testid="stSidebar"] { display: none !important; }
-    
-    /* Header */
-    .main-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: #1A1A24;
-        border-bottom: 2px solid #f0b90b;
-        padding: 8px 32px;
-        z-index: 9999;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 70px;
-    }
-    
-    /* Menu */
-    .top-menu {
-        display: flex;
-        gap: 5px;
-        background: #2C2C3A;
-        padding: 5px;
-        border-radius: 40px;
-    }
-    
-    .menu-btn {
-        padding: 10px 24px;
-        border-radius: 30px;
-        color: #9E9EB0;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        border: none;
-        background: transparent;
-        transition: all 0.3s ease;
-    }
-    
-    .menu-btn:hover {
-        background: #3C3C4A;
-        color: white;
-    }
-    
-    .menu-btn.active {
-        background: #f0b90b;
-        color: #0A0A0F;
-    }
-    
-    /* Logo */
-    .logo {
-        background: linear-gradient(135deg, #f0b90b, #fbbf24);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 22px;
-        font-weight: 800;
-    }
-    
-    /* Contenuto */
-    .main-content {
-        margin-top: 90px;
-        padding: 20px 32px;
-        margin-bottom: 70px;
-    }
-    
-    /* Footer */
-    .app-footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: #1A1A24;
-        border-top: 1px solid #f0b90b;
-        padding: 12px 32px;
-        color: #9E9EB0;
-        font-size: 12px;
-        display: flex;
-        justify-content: space-between;
-        z-index: 9999;
-        height: 50px;
-    }
-    
-    /* Card risultati */
-    .result-card {
-        background: linear-gradient(135deg, #1e1e2e, #1a1a2a);
-        border-left: 8px solid;
-        border-radius: 24px;
-        padding: 24px;
-        margin: 16px 0;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    }
-</style>
-""", unsafe_allow_html=True)
+<div class='premium-header'>
+    <div style='display: flex; justify-content: space-between; align-items: center; height: 70px;'>
+        <div style='display: flex; align-items: center; gap: 15px;'>
+            <span style='font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #f0b90b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>👁️ GOLDEN EYE</span>
+            <span style='background: #2C2C3A; padding: 4px 12px; border-radius: 30px; font-size: 12px; color: #f0b90b; border: 1px solid #f0b90b;'>PRO 4.0</span>
+        </div>
+        <div style='color: #94a3b8;'>📊 {len(st.session_state.watchlist)} assets</div>
+    </div>
+</div>
+""".format(len(st.session_state.watchlist)), unsafe_allow_html=True)
 
-# ============================================
-# MENU CON PULSANTI STREAMLIT (NON HTML)
-# ============================================
+# Menu con pulsanti Streamlit (distanziati dall'header)
+st.markdown("<div style='margin-top: 90px;'></div>", unsafe_allow_html=True)
+
 cols = st.columns(6)
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 
@@ -142,7 +176,11 @@ for i, item in enumerate(menu_items):
             st.session_state.current_page = item
             st.rerun()
 
-st.markdown("---")
+# ============================================
+# MARKET INFO BAR (sotto il menu)
+# ============================================
+from ui_streamlit.components.market_bar import render_market_bar
+render_market_bar()
 
 # ============================================
 # ROUTING PAGINE
@@ -197,9 +235,9 @@ except Exception as e:
 
 # Footer
 st.markdown(f"""
-<div class='app-footer'>
+<div class='premium-footer'>
     <span>📅 {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}</span>
-    <span>⚡ GOLDEN EYE PRO 4.0</span>
+    <span>⚡ GOLDEN EYE PRO 4.0 • Trading Intelligence Platform</span>
     <span>⚠️ Solo scopo educativo</span>
 </div>
 """, unsafe_allow_html=True)
