@@ -1,4 +1,3 @@
-# providers/twelvedata_provider.py
 import pandas as pd
 import streamlit as st
 import requests
@@ -14,35 +13,20 @@ TWELVEDATA_KEY = st.secrets.get("TWELVEDATA_KEY", "")
 def convert_symbol_for_twelvedata(symbol: str) -> str:
     """
     Converte simbolo da formato Yahoo (BTC-USD) a TwelveData (BTC/USD)
-    
-    Esempi:
-    - BTC-USD → BTC/USD
-    - ETH-USD → ETH/USD
-    - BTCUSDT → BTC/USDT (non supportato, ma gestito)
-    - AAPL → AAPL (azioni)
     """
-    # Se è già nel formato con slash, lascia stare
     if "/" in symbol:
         return symbol
-    
-    # Se è nel formato BTC-USD, converti in BTC/USD
     if "-" in symbol:
         return symbol.replace("-", "/")
-    
-    # Se è BTCUSDT, prova a convertire in BTC/USDT
     if "USDT" in symbol:
         return symbol.replace("USDT", "/USDT")
-    
-    # Se è BTCUSD, converti in BTC/USD
     if "USD" in symbol and len(symbol) > 3:
         base = symbol[:-3]
         return f"{base}/USD"
-    
-    # Altrimenti lascia com'è
     return symbol
 
 class TwelveDataProvider(BaseProvider):
-    """Provider TwelveData con caching su disco"""
+    """Provider TwelveData con caching"""
     
     def __init__(self, ttl: int = 600, max_retries: int = 3):
         super().__init__("twelvedata", ttl=ttl)
@@ -54,7 +38,6 @@ class TwelveDataProvider(BaseProvider):
         if not TWELVEDATA_KEY:
             return None, "NO_KEY"
         
-        # Converti simbolo per TwelveData
         td_symbol = convert_symbol_for_twelvedata(symbol)
         
         url = "https://api.twelvedata.com/time_series"
@@ -66,14 +49,13 @@ class TwelveDataProvider(BaseProvider):
             "timezone": "UTC"
         }
         
-        # Retry logic
         for attempt in range(self.max_retries):
             try:
                 session = http_session()
                 response = session.get(url, params=params, timeout=15)
                 
                 if response.status_code == 429:
-                    wait_time = 60 * (attempt + 1)  # Exponential backoff
+                    wait_time = 60 * (attempt + 1)
                     if attempt < self.max_retries - 1:
                         time.sleep(wait_time)
                         continue
@@ -114,22 +96,22 @@ class TwelveDataProvider(BaseProvider):
     
     @st.cache_data(ttl=600, show_spinner=False)
     def fetch_15m(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 15m con 5000 candles - con caching Streamlit"""
+        """Fetch 15m con caching"""
         return self.fetch(self._fetch_time_series, symbol, "15min", 5000)
     
     @st.cache_data(ttl=600, show_spinner=False)
     def fetch_1h(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 1h con 2000 candles - con caching Streamlit"""
+        """Fetch 1h con caching"""
         return self.fetch(self._fetch_time_series, symbol, "1h", 2000)
     
     @st.cache_data(ttl=600, show_spinner=False)
     def fetch_4h(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 4h con 1000 candles - con caching Streamlit"""
+        """Fetch 4h con caching"""
         return self.fetch(self._fetch_time_series, symbol, "4h", 1000)
     
     @st.cache_data(ttl=3600, show_spinner=False)
     def search_symbols(self, query: str, outputsize: int = 20) -> List[Dict[str, str]]:
-        """Cerca simboli su TwelveData con caching"""
+        """Cerca simboli con caching"""
         if not TWELVEDATA_KEY or not query or len(query.strip()) < 2:
             return []
         
@@ -159,7 +141,6 @@ class TwelveDataProvider(BaseProvider):
                 exch = item.get("exchange") or ""
                 currency = item.get("currency") or ""
                 
-                # Costruisci label informativa
                 label = sym
                 details = []
                 if name:
