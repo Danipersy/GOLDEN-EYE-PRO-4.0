@@ -1,9 +1,8 @@
 import streamlit as st
 
 def render_scan_filters():
-    """Filtri a 5 livelli con grafica PRO"""
-    
-    # Inizializzazione
+    """Filtri a 5 livelli con componenti Streamlit"""
+    # Inizializza valori di default
     defaults = {
         'filter_min_confidence': 1,
         'filter_show_neutral': True,
@@ -13,66 +12,28 @@ def render_scan_filters():
         'filter_show_strong': True,
         'filter_min_score': 0
     }
-    
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
-    
-    with st.expander("🔧 FILTRI AVANZATI", expanded=False):
-        # Livello minimo
-        st.markdown("#### 🎯 Livello di Confidenza")
-        
-        level = st.select_slider(
-            "Seleziona livello minimo:",
-            options=[1, 2, 3, 4, 5],
-            value=st.session_state.filter_min_confidence,
-            format_func=lambda x: {
-                1: "⚪ TUTTI (L1+)",
-                2: "📈 TENDENZA (L2+)",
-                3: "📊 MOMENTUM (L3+)",
-                4: "🟡 MEDI (L4+)",
-                5: "🔥 SOLO FORTI (L5)"
-            }[x],
-            key="confidence_slider"
-        )
-        st.session_state.filter_min_confidence = level
-        
-        # Score minimo
-        st.session_state.filter_min_score = st.slider(
-            "Score AI minimo",
-            0, 100, 
-            st.session_state.filter_min_score,
-            help="Filtra per score dell'AI (0-100)"
-        )
-        
+
+    with st.expander("🔧 Filtri Avanzati", expanded=False):
+        st.slider("Livello minimo", 1, 5, st.session_state.filter_min_confidence, 1,
+                  key="filter_min_confidence", format="L%d")
+        st.slider("Score minimo", 0, 100, st.session_state.filter_min_score,
+                  key="filter_min_score")
+
         st.divider()
-        
-        # Categorie
         col1, col2 = st.columns(2)
-        
         with col1:
-            st.checkbox("⚪ Laterale (L1)", key="filter_show_neutral",
-                       disabled=level > 1,
-                       help="Mercato laterale - solo informativo")
-            st.checkbox("📈 Tendenza (L2)", key="filter_show_trend",
-                       disabled=level > 2,
-                       help="Posizione rispetto a EMA200")
-            st.checkbox("📊 Momentum (L3)", key="filter_show_momentum",
-                       disabled=level > 3,
-                       help="Pendenza significativa")
-        
+            st.checkbox("⚪ Laterale (L1)", key="filter_show_neutral")
+            st.checkbox("📈 Tendenza (L2)", key="filter_show_trend")
+            st.checkbox("📊 Momentum (L3)", key="filter_show_momentum")
         with col2:
-            st.checkbox("🟡 Trading Medio (L4)", key="filter_show_medium",
-                       disabled=level > 4,
-                       help="Segnali di trading medi")
-            st.checkbox("🔥 Trading Forte (L5)", key="filter_show_strong",
-                       disabled=level > 5,
-                       help="Segnali di trading forti")
-        
+            st.checkbox("🟡 Medio (L4)", key="filter_show_medium")
+            st.checkbox("🔥 Forte (L5)", key="filter_show_strong")
+
         st.divider()
-        
-        # Preset rapidi
-        st.markdown("#### ⚡ Preset Rapidi")
+        st.caption("Preset rapidi:")
         cols = st.columns(4)
         with cols[0]:
             if st.button("📊 Tutti", use_container_width=True):
@@ -94,7 +55,7 @@ def render_scan_filters():
                 st.session_state.filter_min_confidence = 5
                 st.session_state.filter_min_score = 70
                 st.rerun()
-    
+
     return {
         "min_confidence": st.session_state.filter_min_confidence,
         "min_score": st.session_state.filter_min_score,
