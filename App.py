@@ -4,6 +4,26 @@ import numpy as np
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 import plotly.express as px
+import sys
+import os
+from pathlib import Path
+
+# ============================================
+# CONFIGURAZIONE PATH - QUESTA È LA PARTE IMPORTANTE!
+# ============================================
+# Aggiungi la directory corrente al path
+current_dir = Path(__file__).parent.absolute()
+sys.path.insert(0, str(current_dir))
+
+# Aggiungi anche ui_streamlit al path esplicitamente
+ui_streamlit_path = current_dir / "ui_streamlit"
+if str(ui_streamlit_path) not in sys.path:
+    sys.path.insert(0, str(ui_streamlit_path))
+
+# Debug: stampa i path per vedere cosa sta succedendo
+print("🔍 Path caricati:")
+for p in sys.path[:3]:
+    print(f"  - {p}")
 
 # Configurazione pagina
 st.set_page_config(
@@ -14,11 +34,46 @@ st.set_page_config(
 )
 
 # ============================================
-# AGGIUNGI IL PERCORSO AL SYS.PATH
+# FUNZIONE DI IMPORT MIGLIORATA
 # ============================================
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent))
+def import_page(module_name):
+    """Importa dinamicamente una pagina cercando in diverse posizioni"""
+    
+    # Lista di possibili percorsi da provare
+    possible_imports = [
+        f"ui_streamlit.pages.{module_name}",  # ui_streamlit.pages.scan
+        f"pages.{module_name}",                # pages.scan
+        module_name,                            # scan
+        f"ui_streamlit.{module_name}"           # ui_streamlit.scan
+    ]
+    
+    # Lista di possibili nomi di funzioni
+    possible_functions = ['show_page', 'show', 'render', 'main', f'show_{module_name}']
+    
+    for import_path in possible_imports:
+        try:
+            print(f"🔄 Provando a importare: {import_path}")
+            module = __import__(import_path, fromlist=[''])
+            
+            # Cerca la funzione
+            for func_name in possible_functions:
+                if hasattr(module, func_name):
+                    print(f"✅ Trovato {func_name} in {import_path}")
+                    return getattr(module, func_name)
+            
+            # Se non trova funzioni specifiche, ritorna il modulo
+            print(f"⚠️ Modulo {import_path} importato ma nessuna funzione riconosciuta")
+            return lambda: None  # funzione vuota
+            
+        except ImportError as e:
+            print(f"❌ Fallito {import_path}: {e}")
+            continue
+        except Exception as e:
+            print(f"❌ Errore inaspettato con {import_path}: {e}")
+            continue
+    
+    print(f"❌ Nessun import riuscito per {module_name}")
+    return None
 
 # ============================================
 # CSS BASE
@@ -203,23 +258,22 @@ if "asset" in query_params:
     st.session_state.selected_asset = query_params["asset"]
 
 # ============================================
-# FUNZIONI DI IMPORT PAGINE
+# DEBUG INFO (RIMUOVI DOPO AVER RISOLTO)
 # ============================================
-def import_page(module_name):
-    """Importa dinamicamente una pagina dalla cartella ui_streamlit.pages"""
-    try:
-        module = __import__(f"ui_streamlit.pages.{module_name}", fromlist=['show_page'])
-        if hasattr(module, 'show_page'):
-            return module.show_page
-        else:
-            # Cerca altre funzioni comuni
-            for func_name in ['show', 'render', 'main']:
-                if hasattr(module, func_name):
-                    return getattr(module, func_name)
-            return None
-    except ImportError as e:
-        st.error(f"Errore caricamento {module_name}: {e}")
-        return None
+with st.expander("🔧 Debug Info", expanded=False):
+    st.write("**Current Directory:**", current_dir)
+    st.write("**UI Streamlit Path:**", ui_streamlit_path)
+    st.write("**Sys Path:**", sys.path[:5])
+    
+    # Lista file in ui_streamlit/pages
+    pages_dir = ui_streamlit_path / "pages"
+    if pages_dir.exists():
+        st.write("**File in ui_streamlit/pages:**")
+        files = list(pages_dir.glob("*.py"))
+        for f in files:
+            st.write(f"  - {f.name}")
+    else:
+        st.write("**❌ Cartella ui_streamlit/pages non trovata!**")
 
 # ============================================
 # CONTENUTO PRINCIPALE
@@ -230,9 +284,10 @@ st.markdown('<div class="main-content">', unsafe_allow_html=True)
 if st.session_state.current_page == "SCAN":
     show_func = import_page("scan")
     if show_func:
-        show_func()
+        with st.spinner("Caricamento SCAN..."):
+            show_func()
     else:
-        st.info("🔍 Pagina SCAN in caricamento...")
+        st.warning("🔍 Pagina SCAN non trovata, uso mock data")
         # Mock scan
         st.subheader("🔍 SCAN Mercati")
         col1, col2, col3 = st.columns(3)
@@ -246,10 +301,10 @@ if st.session_state.current_page == "SCAN":
 elif st.session_state.current_page == "DETTAGLIO":
     show_func = import_page("dettaglio")
     if show_func:
-        show_func(st.session_state.selected_asset)
+        with st.spinner(f"Caricamento {st.session_state.selected_asset}..."):
+            show_func(st.session_state.selected_asset)
     else:
         st.subheader(f"📊 Dettaglio {st.session_state.selected_asset}")
-        st.info(f"Caricamento dati per {st.session_state.selected_asset}...")
         
         # Mock grafico
         dates = pd.date_range(end=datetime.now(), periods=100, freq='D')
@@ -261,7 +316,8 @@ elif st.session_state.current_page == "DETTAGLIO":
 elif st.session_state.current_page == "WATCHLIST":
     show_func = import_page("watchlist")
     if show_func:
-        show_func()
+        with st.spinner("Caricamento Watchlist..."):
+            show_func()
     else:
         st.subheader("📋 Watchlist")
         for asset in st.session_state.watchlist:
@@ -290,21 +346,21 @@ elif st.session_state.current_page == "STRUMENTI":
         if show_func:
             show_func()
         else:
-            st.info("📊 Pannello Validazione")
+            st.info("📊 Pannello Validazione (mock)")
             
     with tabs[1]:
         show_func = import_page("ottimizzazione")
         if show_func:
             show_func()
         else:
-            st.info("🎯 Pannello Ottimizzazione")
+            st.info("🎯 Pannello Ottimizzazione (mock)")
             
     with tabs[2]:
         show_func = import_page("money_management")
         if show_func:
             show_func()
         else:
-            st.info("💰 Pannello Money Management")
+            st.info("💰 Pannello Money Management (mock)")
             
 elif st.session_state.current_page == "TRADING":
     st.subheader("🤖 Trading")
@@ -315,14 +371,14 @@ elif st.session_state.current_page == "TRADING":
         if show_func:
             show_func()
         else:
-            st.info("📝 Paper Trading")
+            st.info("📝 Paper Trading (mock)")
             
     with tabs[1]:
         show_func = import_page("auto_trader")
         if show_func:
             show_func()
         else:
-            st.info("🧠 AutoTrader")
+            st.info("🧠 AutoTrader (mock)")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
