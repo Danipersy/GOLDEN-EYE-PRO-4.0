@@ -92,7 +92,8 @@ def show_page(symbol=None):
             fig.update_layout(
                 template='plotly_dark',
                 height=500,
-                xaxis_rangeslider_visible=False
+                xaxis_rangeslider_visible=False,
+                title=f"Andamento {symbol}"
             )
             
             st.plotly_chart(fig, use_container_width=True)
@@ -119,6 +120,19 @@ def show_page(symbol=None):
                 'mtf_short': mtf_short
             }
             render_ai_suggestions(symbol, data_for_ai, news)
+            
+            # Dettaglio indicatori
+            with st.expander("📊 Dettaglio Indicatori"):
+                col_i1, col_i2, col_i3 = st.columns(3)
+                with col_i1:
+                    st.metric("RSI", f"{signal['rsi']:.1f}")
+                    st.metric("ADX", f"{signal['adx']:.1f}")
+                with col_i2:
+                    st.metric("ATR", f"${signal['atr']:.2f}")
+                    st.metric("Pendenza", f"{signal['slope']:.3f}")
+                with col_i3:
+                    st.metric("Squeeze", "ON" if signal['sqz_on'] else "OFF")
+                    st.metric("EMA200", f"${df_ind['ema200'].iloc[-1]:.2f}")
             
             # SL/TP
             st.subheader("💰 Risk Management")
