@@ -52,7 +52,6 @@ def fetch_yahoo(symbol, interval="15m", period="1mo"):
         })
         df = df.reset_index()
         
-        # Gestione nome colonna datetime
         if 'Datetime' in df.columns:
             df = df.rename(columns={'Datetime': 'datetime'})
         elif 'Date' in df.columns:
@@ -88,7 +87,6 @@ def fetch_alphavantage(symbol, interval="15m", period="1mo", api_key=None):
         
         response = requests.get(url, params=params, timeout=10)
         
-        # Gestione rate limit
         if response.status_code == 429:
             time.sleep(60)
             return None
@@ -133,7 +131,6 @@ def fetch_twelvedata(symbol, interval="15m", period="1mo", api_key=None):
         }
         td_interval = interval_map.get(interval, "15min")
         
-        # Converti simbolo per TwelveData
         td_symbol = symbol.replace("-", "/")
         
         url = "https://api.twelvedata.com/time_series"
@@ -146,7 +143,6 @@ def fetch_twelvedata(symbol, interval="15m", period="1mo", api_key=None):
         
         response = requests.get(url, params=params, timeout=10)
         
-        # Gestione rate limit
         if response.status_code == 429:
             time.sleep(60)
             return None
@@ -182,7 +178,6 @@ def fetch_twelvedata(symbol, interval="15m", period="1mo", api_key=None):
 def scan_symbol(symbol, interval="15m", period="1mo"):
     """Scansione singolo simbolo con caching"""
     
-    # Prova con fallback
     df = fetch_with_fallback(symbol, interval, period)
     
     if df is not None and not df.empty:
@@ -196,7 +191,7 @@ def scan_symbol(symbol, interval="15m", period="1mo"):
             'change': change,
             'volume': float(df['volume'].iloc[-1]),
             'timestamp': datetime.now(),
-            'data': df  # Includi il dataframe per uso successivo
+            'data': df
         }
     
     return {
@@ -210,7 +205,7 @@ def scan_symbol(symbol, interval="15m", period="1mo"):
     }
 
 def fetch_yf(symbol, interval="15m", period="1mo", tail=None):
-    """Compatibile con fetch_yf originale - restituisce DataFrame"""
+    """Compatibile con fetch_yf originale"""
     result = scan_symbol(symbol, interval, period)
     if result and 'data' in result and result['data'] is not None:
         df = result['data']
@@ -220,7 +215,7 @@ def fetch_yf(symbol, interval="15m", period="1mo", tail=None):
     return None
 
 def fetch_yf_ohlcv(symbol, interval="15m", period="1mo"):
-    """Compatibile con fetch_yf_ohlcv originale - restituisce DataFrame"""
+    """Compatibile con fetch_yf_ohlcv originale"""
     return fetch_yf(symbol, interval, period)
 
 def run_radar_scan_yahoo(symbols, interval="15m", period="1mo"):
@@ -230,6 +225,6 @@ def run_radar_scan_yahoo(symbols, interval="15m", period="1mo"):
     for symbol in symbols:
         result = scan_symbol(symbol, interval, period)
         results.append(result)
-        time.sleep(1)  # Evita rate limiting
+        time.sleep(1)
     
     return results
