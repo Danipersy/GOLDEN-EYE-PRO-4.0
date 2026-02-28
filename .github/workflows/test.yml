@@ -1,14 +1,17 @@
-name: Test
+name: Test                    # OK: senza spazi extra
 
-on: [push]
+on: [push]                    # OK: array semplice
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+jobs:                         # OK: 2 spazi
+  test:                       # OK: 2 spazi
+    runs-on: ubuntu-latest    # OK: 2 spazi
+    steps:                    # OK: 2 spazi
+      - uses: actions/checkout@v3  # OK: 2 spazi + 2 spazi
+      
       - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - run: pip install pandas-ta
-      - run: python -c "import pandas_ta"
+        with:                       # OK: 2 spazi + 4 spazi
+          python-version: '3.11'    # OK: 2 spazi + 6 spazi
+      
+      - run: pip install pandas-ta  # OK: 2 spazi + 2 spazi
+      
+      - run: python -c "import pandas_ta"  # OK: 2 spazi + 2 spazi
