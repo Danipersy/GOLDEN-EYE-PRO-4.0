@@ -1,35 +1,9 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 from datetime import datetime
 import sys
 from pathlib import Path
-# All'inizio di App.py, dopo gli import
-import os
-import sys
-from pathlib import Path
 
-print("🔍 DEBUG PATH:")
-print(f"Current dir: {Path(__file__).parent.absolute()}")
-print(f"sys.path: {sys.path}")
-
-# Verifica se ui_streamlit esiste
-ui_path = Path(__file__).parent / "ui_streamlit"
-print(f"ui_streamlit exists: {ui_path.exists()}")
-
-if ui_path.exists():
-    print(f"Files in ui_streamlit: {[f.name for f in ui_path.glob('*.py')]}")
-    
-    pages_path = ui_path / "pages.py"
-    print(f"pages.py exists: {pages_path.exists()}")
-    
-    if pages_path.exists():
-        print("Content of pages.py:")
-        with open(pages_path, 'r') as f:
-            print(f.read()[:500])  # Prime 500 caratteri
-# ============================================
-# CONFIGURAZIONE PATH
-# ============================================
+# Configurazione path
 current_dir = Path(__file__).parent.absolute()
 sys.path.insert(0, str(current_dir))
 
@@ -41,52 +15,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ============================================
-# SESSION STATE
-# ============================================
-if 'watchlist' not in st.session_state:
-    st.session_state.watchlist = ['BTC-USD', 'ETH-USD', 'BNB-USD', 'SOL-USD', 'ADA-USD']
-    
-if 'selected_asset' not in st.session_state:
-    st.session_state.selected_asset = 'BTC-USD'
-    
-if 'radar_select' not in st.session_state:
-    st.session_state.radar_select = 'BTC-USD'
-    
-if 'current_view' not in st.session_state:
-    st.session_state.current_view = 'scan'
-
-# ============================================
-# FUNZIONE DI IMPORT CORRETTA
-# ============================================
-def import_main_view():
-    """Importa la vista principale"""
-    try:
-        from ui_streamlit.pages import render_main_view
-        print("✅ render_main_view importata correttamente")
-        return render_main_view
-    except ImportError as e:
-        print(f"❌ Errore import: {e}")
-        return None
-    except Exception as e:
-        print(f"❌ Errore: {e}")
-        return None
-
-# ============================================
-# CSS BASE
-# ============================================
+# CSS base
 st.markdown("""
 <style>
-    .main {
-        background: #0A0A0F;
-        padding: 0 !important;
-    }
-    section[data-testid="stSidebar"] {
-        display: none !important;
-    }
-    .main-content {
-        padding: 20px 32px;
-    }
+    .main { background: #0A0A0F; }
     .app-footer {
         position: fixed;
         bottom: 0;
@@ -104,20 +36,27 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================
-# CONTENUTO PRINCIPALE
-# ============================================
-st.markdown('<div class="main-content">', unsafe_allow_html=True)
-
-# Importa e renderizza la vista principale
-main_view = import_main_view()
-if main_view:
-    main_view()
-else:
-    st.error("❌ Impossibile caricare l'applicazione")
+# Tentativo di import
+try:
+    from ui_streamlit import render_main_view
+    st.success("✅ App caricata correttamente!")
+    render_main_view()
+except ImportError as e:
+    st.error(f"❌ Errore import: {e}")
     
-    # Mock data come fallback
-    st.subheader("🔍 SCAN Mercati (Modalità Fallback)")
+    # Mostra info debug
+    with st.expander("🔧 Debug Info"):
+        st.write("Current Directory:", current_dir)
+        st.write("Files in current dir:", [f.name for f in current_dir.glob("*")])
+        
+        ui_path = current_dir / "ui_streamlit"
+        if ui_path.exists():
+            st.write("Files in ui_streamlit:", [f.name for f in ui_path.glob("*")])
+        else:
+            st.write("❌ ui_streamlit non trovato!")
+    
+    # Fallback
+    st.subheader("🔍 SCAN Mercati (Fallback)")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("BTC-USD", "$52,345", "+2.3%")
@@ -126,16 +65,11 @@ else:
     with col3:
         st.metric("BNB-USD", "$412", "-0.5%")
 
-st.markdown('</div>', unsafe_allow_html=True)
-
-# ============================================
-# FOOTER
-# ============================================
+# Footer
 st.markdown(f"""
 <div class='app-footer'>
     <span>📅 {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}</span>
-    <span>📊 Watchlist: {len(st.session_state.watchlist)} assets</span>
-    <span>⚡ Golden Eye Pro v4.0.0</span>
+    <span>📊 Golden Eye Pro</span>
     <span>⚠️ Solo scopo educativo</span>
 </div>
 """, unsafe_allow_html=True)
