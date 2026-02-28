@@ -13,31 +13,26 @@ def render_result_card(result, key):
             "color": "#00ff88",
             "text": "🔥 FORTE",
             "bg": "linear-gradient(135deg, #00ff8815, #00ff8805)",
-            "shadow": "0 8px 25px #00ff8840"
         },
         4: {
             "color": "#f0b90b",
             "text": "🟡 MEDIO",
             "bg": "linear-gradient(135deg, #f0b90b15, #f0b90b05)",
-            "shadow": "0 8px 25px #f0b90b40"
         },
         3: {
             "color": "#3b82f6",
             "text": "📊 MOMENTUM",
             "bg": "linear-gradient(135deg, #3b82f615, #3b82f605)",
-            "shadow": "0 8px 25px #3b82f640"
         },
         2: {
             "color": "#8b5cf6",
             "text": "📈 TENDENZA",
             "bg": "linear-gradient(135deg, #8b5cf615, #8b5cf605)",
-            "shadow": "0 8px 25px #8b5cf640"
         },
         1: {
             "color": "#94a3b8",
             "text": "⚪ LATERALE",
             "bg": "linear-gradient(135deg, #94a3b815, #94a3b805)",
-            "shadow": "0 8px 25px #94a3b840"
         },
     }
     
@@ -102,7 +97,7 @@ def render_result_card(result, key):
             </div>
         </div>
         
-        <!-- Hover effect overlay -->
+        <!-- Hover effect overlay (CORRETTO) -->
         <div style="
             position: absolute;
             top: 0;
@@ -119,7 +114,7 @@ def render_result_card(result, key):
     <style>
         div[style*="border-left: 8px solid"]:hover {{
             transform: translateY(-6px) scale(1.02);
-            box-shadow: {cfg['shadow']};
+            box-shadow: 0 15px 30px {cfg['color']}40;
         }}
         div[style*="border-left: 8px solid"]:hover div[style*="pointer-events: none"] {{
             opacity: 1;
@@ -128,3 +123,4 @@ def render_result_card(result, key):
     """
     
     st.markdown(card_html, unsafe_allow_html=True)
+    
