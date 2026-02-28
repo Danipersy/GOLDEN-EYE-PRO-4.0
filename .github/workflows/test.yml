@@ -1,21 +1,61 @@
-cat > .github/workflows/test.yml << 'EOF'
-name: Test Golden Eye Pro
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ "main" ]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - run: pip install -r requirements.txt
-      - run: python -c "import config; print('✅ OK')"
-      - run: echo "✅ Test passati!"
-EOF
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    
+    - name: Test imports
+      run: |
+        python -c "
+import sys
+try:
+    import config
+    print('✅ config')
+    from providers.base_provider import BaseProvider
+    print('✅ base_provider')
+    from indicators.robust_ta import compute_indicators_15m
+    print('✅ robust_ta')
+    print('🎉 Tutti gli import funzionano!')
+except Exception as e:
+    print(f'❌ Errore: {e}')
+    sys.exit(1)
+"
+    
+    - name: Create cache directories
+      run: |
+        mkdir -p cache
+        mkdir -p cache/twelvedata
+        mkdir -p cache/yahoo
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          cache/
+          *.log
