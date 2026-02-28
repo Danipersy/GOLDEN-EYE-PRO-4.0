@@ -1,4 +1,3 @@
-# ui_streamlit/pages/paper_trading.py
 import streamlit as st
 from ui_streamlit.components.paper_trading import render_paper_trading_panel
 
@@ -7,7 +6,17 @@ def render():
     if 'detail_data' in st.session_state and st.session_state.radar_select:
         data = st.session_state.detail_data
         signal_label = data.get('sig', 'SEGNALE')
-        signal_score = 85 if "FORTE" in signal_label else 65
+        
+        # Calcolo score più granulare
+        if "FORTE" in signal_label:
+            signal_score = 85
+        elif "MEDIO" in signal_label:
+            signal_score = 75
+        elif "DEBOLE" in signal_label:
+            signal_score = 60
+        else:
+            signal_score = 50
+        
         render_paper_trading_panel(
             st.session_state.radar_select,
             data.get('p', 0),
