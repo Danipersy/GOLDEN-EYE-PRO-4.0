@@ -1,4 +1,3 @@
-# providers/multi_provider.py
 import yfinance as yf
 import requests
 import pandas as pd
