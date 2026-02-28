@@ -15,121 +15,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# CSS GLOBALE PROFESSIONALE
+# CSS minimale per sfondo
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    /* RESET E BASE */
-    * {
-        font-family: 'Inter', sans-serif;
-    }
-    
     .main {
-        background: radial-gradient(circle at 0% 0%, #1a1f35, #0a0e1a);
+        background: #0A0A0F;
         padding: 0 !important;
     }
-    
-    .stApp {
-        background: transparent;
-    }
-    
-    /* NASCONDI SIDEBAR */
     section[data-testid="stSidebar"] {
         display: none !important;
-    }
-    
-    /* HEADER PREMIUM */
-    .premium-header {
-        background: linear-gradient(90deg, rgba(18, 23, 40, 0.95), rgba(26, 31, 58, 0.95));
-        backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(240, 185, 11, 0.3);
-        padding: 0 32px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 9999;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    
-    /* TOP BAR MERCATI */
-    .market-bar {
-        background: linear-gradient(135deg, #1E2338, #161B2F);
-        border-radius: 20px;
-        padding: 20px 30px;
-        margin: 100px 32px 30px 32px;
-        border: 1px solid rgba(240, 185, 11, 0.2);
-        border-left: 6px solid #f0b90b;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        backdrop-filter: blur(10px);
-    }
-    
-    /* CARD METRICHE */
-    .metric-card-pro {
-        background: linear-gradient(135deg, #1E2338, #161B2F);
-        border-radius: 20px;
-        padding: 20px;
-        border: 1px solid rgba(240, 185, 11, 0.2);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .metric-card-pro::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-        transition: left 0.5s;
-    }
-    
-    .metric-card-pro:hover::before {
-        left: 100%;
-    }
-    
-    .metric-card-pro:hover {
-        transform: translateY(-5px);
-        border-color: #f0b90b;
-        box-shadow: 0 20px 40px rgba(240, 185, 11, 0.2);
-    }
-    
-    /* BADGE LIVE */
-    .live-badge {
-        background: linear-gradient(135deg, #00ff8820, #00ff8805);
-        border: 1px solid #00ff88;
-        border-radius: 30px;
-        padding: 4px 16px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { opacity: 0.7; }
-        50% { opacity: 1; }
-        100% { opacity: 0.7; }
-    }
-    
-    /* FOOTER */
-    .premium-footer {
-        background: linear-gradient(90deg, #121728, #1A1F3A);
-        border-top: 1px solid rgba(240, 185, 11, 0.3);
-        padding: 16px 32px;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        color: #94a3b8;
-        font-size: 13px;
-        display: flex;
-        justify-content: space-between;
-        z-index: 9999;
-        backdrop-filter: blur(10px);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -147,27 +41,16 @@ if 'last_scan_time' not in st.session_state:
     st.session_state.last_scan_time = None
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
-if 'detail_data' not in st.session_state:
-    st.session_state.detail_data = None
 
-# ============================================
-# HEADER CON MENU
-# ============================================
-st.markdown(f"""
-<div class='premium-header'>
-    <div style='display: flex; justify-content: space-between; align-items: center; height: 70px;'>
-        <div style='display: flex; align-items: center; gap: 15px;'>
-            <span style='font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #f0b90b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>👁️ GOLDEN EYE</span>
-            <span style='background: #2C2C3A; padding: 4px 12px; border-radius: 30px; font-size: 12px; color: #f0b90b; border: 1px solid #f0b90b;'>PRO 4.0</span>
-        </div>
-        <div style='color: #94a3b8;'>📊 {len(st.session_state.watchlist)} assets</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# Header con logo e watchlist
+col1, col2, col3 = st.columns([1, 4, 1])
+with col1:
+    st.markdown("### 👁️ **GOLDEN EYE**")
+with col3:
+    st.markdown(f"### 📊 {len(st.session_state.watchlist)}")
 
-# Menu con pulsanti Streamlit
-st.markdown("<div style='margin-top: 90px;'></div>", unsafe_allow_html=True)
-
+# Menu con pulsanti
+st.markdown("---")
 cols = st.columns(6)
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 
@@ -178,15 +61,39 @@ for i, item in enumerate(menu_items):
             st.session_state.current_page = item
             st.rerun()
 
-# ============================================
-# MARKET INFO BAR
-# ============================================
-from ui_streamlit.components.market_bar import render_market_bar
-render_market_bar()
+st.markdown("---")
 
-# ============================================
-# ROUTING PAGINE
-# ============================================
+# Market Info Bar (solo testo)
+now = datetime.now()
+weekday = now.weekday()
+hour = now.hour
+
+crypto_status = "🟢 APERTO 24/7"
+if weekday < 5 and 9 <= hour <= 16:
+    stock_status = "🟢 APERTO"
+else:
+    stock_status = "🔴 CHIUSO" + (" (Weekend)" if weekday >= 5 else "")
+
+if weekday < 5:
+    forex_status = "🟢 APERTO"
+else:
+    forex_status = "🔴 CHIUSO"
+
+col1, col2, col3, col4, col5 = st.columns(5)
+with col1:
+    st.metric("🕒 Ora", now.strftime("%H:%M"), now.strftime("%d/%m/%Y"))
+with col2:
+    st.metric("🪙 Crypto", crypto_status)
+with col3:
+    st.metric("📈 Azioni", stock_status)
+with col4:
+    st.metric("💱 Forex", forex_status)
+with col5:
+    st.metric("⚡ Versione", "4.0.0")
+
+st.markdown("---")
+
+# Routing pagine
 try:
     if st.session_state.current_page == "SCAN":
         from ui_streamlit.pages.scan import show_page
@@ -201,7 +108,7 @@ try:
         show_page()
     
     elif st.session_state.current_page == "STRUMENTI":
-        st.markdown("## 🛠️ Strumenti Avanzati")
+        st.subheader("🛠️ Strumenti Avanzati")
         tabs = st.tabs(["📊 Validazione", "🎯 Ottimizzazione", "💰 Money Management"])
         
         with tabs[0]:
@@ -217,7 +124,7 @@ try:
             render()
     
     elif st.session_state.current_page == "TRADING":
-        st.markdown("## 🤖 Trading")
+        st.subheader("🤖 Trading")
         tabs = st.tabs(["📝 Paper Trading", "🧠 AutoTrader"])
         
         with tabs[0]:
@@ -236,10 +143,11 @@ except Exception as e:
     st.error(f"Errore: {e}")
 
 # Footer
-st.markdown(f"""
-<div class='premium-footer'>
-    <span>📅 {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}</span>
-    <span>⚡ GOLDEN EYE PRO 4.0 • Trading Intelligence Platform</span>
-    <span>⚠️ Solo scopo educativo</span>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("---")
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.caption(f"📅 {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+with col2:
+    st.caption("⚡ GOLDEN EYE PRO 4.0")
+with col3:
+    st.caption("⚠️ Solo scopo educativo")
