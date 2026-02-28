@@ -1,56 +1,54 @@
 import streamlit as st
 
 def render_result_card(result, key):
-    """Renderizza una card risultato con grafica professionale"""
+    """Renderizza una card risultato con grafica professionale - SENZA DIV VISIBILI"""
     
     level = result.get('level', 1)
     change = result.get('change', 0)
     score = result.get('score', 0)
+    symbol = result.get('symbol', 'N/A')
+    price = result.get('price', 0)
+    volume = result.get('volume', 0)
     
     # Configurazione livelli
-    level_config = {
-        5: {
-            "color": "#00ff88",
-            "text": "🔥 FORTE",
-            "bg": "linear-gradient(135deg, #00ff8815, #00ff8805)",
-        },
-        4: {
-            "color": "#f0b90b",
-            "text": "🟡 MEDIO",
-            "bg": "linear-gradient(135deg, #f0b90b15, #f0b90b05)",
-        },
-        3: {
-            "color": "#3b82f6",
-            "text": "📊 MOMENTUM",
-            "bg": "linear-gradient(135deg, #3b82f615, #3b82f605)",
-        },
-        2: {
-            "color": "#8b5cf6",
-            "text": "📈 TENDENZA",
-            "bg": "linear-gradient(135deg, #8b5cf615, #8b5cf605)",
-        },
-        1: {
-            "color": "#94a3b8",
-            "text": "⚪ LATERALE",
-            "bg": "linear-gradient(135deg, #94a3b815, #94a3b805)",
-        },
-    }
-    
-    cfg = level_config.get(level, level_config[1])
+    if level == 5:
+        level_color = "#00ff88"
+        level_text = "🔥 FORTE"
+        level_bg = "#00ff8815"
+    elif level == 4:
+        level_color = "#f0b90b"
+        level_text = "🟡 MEDIO"
+        level_bg = "#f0b90b15"
+    elif level == 3:
+        level_color = "#3b82f6"
+        level_text = "📊 MOMENTUM"
+        level_bg = "#3b82f615"
+    elif level == 2:
+        level_color = "#8b5cf6"
+        level_text = "📈 TENDENZA"
+        level_bg = "#8b5cf615"
+    else:
+        level_color = "#94a3b8"
+        level_text = "⚪ LATERALE"
+        level_bg = "#94a3b815"
     
     # Determina colore variazione
-    change_color = "#00ff88" if change > 0 else "#ff3344"
-    change_icon = "▲" if change > 0 else "▼"
+    if change > 0:
+        change_color = "#00ff88"
+        change_icon = "▲"
+    else:
+        change_color = "#ff3344"
+        change_icon = "▼"
     
-    card_html = f"""
+    # Costruisci HTML della card - UNA SOLA STRINGA
+    card_html = f'''
     <div style="
-        background: {cfg['bg']};
-        border-left: 8px solid {cfg['color']};
+        background: linear-gradient(135deg, {level_bg}, transparent);
+        border-left: 8px solid {level_color};
         border-radius: 24px;
         padding: 24px;
         margin: 16px 0;
         box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
     ">
@@ -59,30 +57,30 @@ def render_result_card(result, key):
             position: absolute;
             top: 0;
             right: 0;
-            background: {cfg['color']};
+            background: {level_color};
             padding: 8px 24px;
             border-radius: 0 24px 0 24px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         ">
-            <span style="color: #000; font-weight: 700; font-size: 0.9rem;">{cfg['text']}</span>
+            <span style="color: #000; font-weight: 700; font-size: 0.9rem;">{level_text}</span>
         </div>
         
         <!-- Contenuto principale -->
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
             <div>
-                <span style="font-size: 1.8rem; font-weight: 800; color: #fff;">{result['symbol']}</span>
+                <span style="font-size: 1.8rem; font-weight: 800; color: #fff;">{symbol}</span>
                 <div style="display: flex; gap: 25px; margin-top: 12px; flex-wrap: wrap;">
                     <div>
                         <span style="color: #94a3b8; font-size: 0.8rem;">💰 PREZZO</span>
-                        <div style="font-size: 1.4rem; font-weight: 700; color: #fff;">${result.get('price', 0):,.2f}</div>
+                        <div style="font-size: 1.4rem; font-weight: 700; color: #fff;">${price:,.2f}</div>
                     </div>
                     <div>
                         <span style="color: #94a3b8; font-size: 0.8rem;">📊 VOLUME</span>
-                        <div style="font-size: 1.2rem; font-weight: 600; color: #fff;">{result.get('volume', 0):,.0f}</div>
+                        <div style="font-size: 1.2rem; font-weight: 600; color: #fff;">{volume:,.0f}</div>
                     </div>
                     <div>
                         <span style="color: #94a3b8; font-size: 0.8rem;">🎯 SCORE</span>
-                        <div style="font-size: 1.4rem; font-weight: 700; color: {cfg['color']};">{score:.0f}</div>
+                        <div style="font-size: 1.4rem; font-weight: 700; color: {level_color};">{score:.0f}</div>
                     </div>
                 </div>
             </div>
@@ -96,31 +94,8 @@ def render_result_card(result, key):
                 </div>
             </div>
         </div>
-        
-        <!-- Hover effect overlay (CORRETTO) -->
-        <div style="
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.05));
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        "></div>
     </div>
+    '''
     
-    <style>
-        div[style*="border-left: 8px solid"]:hover {{
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 15px 30px {cfg['color']}40;
-        }}
-        div[style*="border-left: 8px solid"]:hover div[style*="pointer-events: none"] {{
-            opacity: 1;
-        }}
-    </style>
-    """
-    
+    # Usa st.markdown per renderizzare l'HTML
     st.markdown(card_html, unsafe_allow_html=True)
-    
