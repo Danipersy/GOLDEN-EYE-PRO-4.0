@@ -5,8 +5,7 @@ from config import DEFAULT_WATCHLIST, WATCHLIST_FILE
 def show_page():
     st.subheader("📋 Gestione Watchlist", divider="blue")
 
-    # Mostra watchlist attuale
-    st.write("**Watchlist attuale:**")
+    # Visualizza watchlist attuale
     for i, asset in enumerate(st.session_state.watchlist):
         cols = st.columns([3, 1, 1])
         with cols[0]:
@@ -23,7 +22,6 @@ def show_page():
                 save_watchlist(WATCHLIST_FILE, st.session_state.watchlist)
                 st.rerun()
 
-    # Aggiungi nuovo asset
     st.divider()
     new_asset = st.text_input("Nuovo simbolo (es. BTC-USD)").upper().strip()
     if st.button("➕ Aggiungi") and new_asset:
