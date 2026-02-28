@@ -1,4 +1,3 @@
-# ui_streamlit/pages/watchlist.py
 import streamlit as st
 import time
 from providers.twelvedata_provider import search_symbols_td
