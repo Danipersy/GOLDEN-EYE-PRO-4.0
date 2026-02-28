@@ -15,10 +15,10 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# CSS GLOBALE - RAFFORZATO
+# CSS GLOBALE - FORZATO
 st.markdown("""
 <style>
-    /* Reset e base */
+    /* Reset completo */
     .main {
         background: linear-gradient(135deg, #0a0e17 0%, #0f141f 100%);
         padding: 0 !important;
@@ -28,70 +28,85 @@ st.markdown("""
         background: transparent;
     }
     
-    /* Nascondi sidebar */
+    /* Nascondi sidebar di Streamlit */
     section[data-testid="stSidebar"] {
         display: none !important;
     }
     
-    /* HEADER FISSO - FORZATO */
+    /* HEADER FISSO CON MENU - VISIBILE SEMPRE */
     .main-header {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        background: rgba(26, 31, 46, 0.95) !important;
-        backdrop-filter: blur(10px) !important;
-        border-bottom: 1px solid rgba(240, 185, 11, 0.2) !important;
+        background: #1A1A24 !important;
+        border-bottom: 2px solid #f0b90b !important;
         padding: 8px 32px !important;
-        z-index: 9999 !important;
+        z-index: 10000 !important;
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
+        height: 70px !important;
         box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
-        height: 64px !important;
     }
     
-    /* Menu - FORZATO */
+    /* Menu container */
     .top-menu {
         display: flex !important;
-        gap: 8px !important;
-        background: rgba(44, 44, 58, 0.5) !important;
-        padding: 4px !important;
+        gap: 5px !important;
+        background: #2C2C3A !important;
+        padding: 5px !important;
         border-radius: 40px !important;
-        border: 1px solid rgba(240, 185, 11, 0.2) !important;
-        backdrop-filter: blur(5px) !important;
+        border: 1px solid #f0b90b !important;
     }
     
-    .menu-item {
-        padding: 8px 20px !important;
+    /* Pulsanti menu */
+    .menu-btn {
+        padding: 10px 24px !important;
         border-radius: 30px !important;
         color: #9E9EB0 !important;
         font-size: 14px !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         cursor: pointer !important;
-        transition: all 0.3s ease !important;
         border: none !important;
         background: transparent !important;
-        line-height: normal !important;
+        transition: all 0.3s ease !important;
     }
     
-    .menu-item:hover {
-        background: rgba(60, 60, 74, 0.8) !important;
+    .menu-btn:hover {
+        background: #3C3C4A !important;
         color: white !important;
-        transform: translateY(-2px) !important;
     }
     
-    .menu-item.active {
-        background: linear-gradient(135deg, #f0b90b, #fbbf24) !important;
+    .menu-btn.active {
+        background: #f0b90b !important;
         color: #0A0A0F !important;
-        box-shadow: 0 4px 15px rgba(240, 185, 11, 0.3) !important;
     }
     
-    /* Contenuto principale - con margine per evitare header */
+    /* Logo */
+    .logo {
+        background: linear-gradient(135deg, #f0b90b, #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 22px;
+        font-weight: 800;
+    }
+    
+    /* Watchlist count */
+    .watchlist-count {
+        background: #2C2C3A;
+        padding: 8px 16px;
+        border-radius: 30px;
+        color: #f0b90b;
+        font-weight: 600;
+        border: 1px solid #f0b90b;
+    }
+    
+    /* Contenuto principale - distanziato dall'header */
     .main-content {
-        margin-top: 80px !important;
+        margin-top: 90px !important;
         padding: 20px 32px !important;
-        margin-bottom: 60px !important;
+        margin-bottom: 70px !important;
     }
     
     /* Footer */
@@ -100,26 +115,26 @@ st.markdown("""
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        background: rgba(26, 31, 46, 0.95) !important;
-        backdrop-filter: blur(10px) !important;
-        border-top: 1px solid rgba(240, 185, 11, 0.2) !important;
+        background: #1A1A24 !important;
+        border-top: 1px solid #f0b90b !important;
         padding: 12px 32px !important;
         color: #9E9EB0 !important;
         font-size: 12px !important;
         display: flex !important;
         justify-content: space-between !important;
-        z-index: 9999 !important;
+        z-index: 10000 !important;
         height: 50px !important;
     }
     
-    /* Assicura che il contenuto non venga nascosto */
-    .stApp > header {
+    /* Nascondi header di default di Streamlit */
+    header[data-testid="stHeader"] {
         display: none !important;
     }
     
-    /* Per debug - rimuovi dopo */
-    .main-header {
-        border: 2px solid red !important;
+    /* Fix per i div che vedi */
+    div[style*="border-left: 8px solid"] {
+        display: block !important;
+        margin: 16px 0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -137,52 +152,46 @@ if 'last_scan_time' not in st.session_state:
     st.session_state.last_scan_time = None
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
-if 'detail_data' not in st.session_state:
-    st.session_state.detail_data = None
 
 # Menu items
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 menu_icons = ["🔍", "📊", "📋", "⚙️", "🤖", "📡"]
 
-# Costruisci HTML menu con stile inline per sicurezza
-menu_html = '<div class="main-header" style="position: fixed; top: 0; left: 0; right: 0; background: rgba(26, 31, 46, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(240, 185, 11, 0.2); padding: 8px 32px; z-index: 9999; display: flex; justify-content: space-between; align-items: center; height: 64px;">'
+# Costruisci header HTML
+header_html = '<div class="main-header">'
 
 # Logo
-menu_html += '<div style="display: flex; align-items: center; gap: 16px;">'
-menu_html += '<span style="background: linear-gradient(135deg, #f0b90b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 24px; font-weight: 800;">👁️ GOLDEN EYE</span>'
-menu_html += '</div>'
+header_html += '<div style="display: flex; align-items: center; gap: 10px;">'
+header_html += '<span class="logo">👁️ GOLDEN EYE</span>'
+header_html += '<span style="background: #2C2C3A; padding: 4px 8px; border-radius: 20px; font-size: 10px; color: #f0b90b;">v4.0.0</span>'
+header_html += '</div>'
 
-# Menu items
-menu_html += '<div style="display: flex; gap: 8px; background: rgba(44, 44, 58, 0.5); padding: 4px; border-radius: 40px; border: 1px solid rgba(240, 185, 11, 0.2);">'
-
+# Menu
+header_html += '<div class="top-menu">'
 for i, (item, icon) in enumerate(zip(menu_items, menu_icons)):
-    active_class = "active"
-    bg_color = "linear-gradient(135deg, #f0b90b, #fbbf24)" if st.session_state.current_page == item else "transparent"
-    text_color = "#0A0A0F" if st.session_state.current_page == item else "#9E9EB0"
-    
-    menu_html += f'<button onclick="changePage(\'{item}\')" style="padding: 8px 20px; border-radius: 30px; color: {text_color}; font-size: 14px; font-weight: 600; cursor: pointer; border: none; background: {bg_color}; transition: all 0.3s ease;">{icon} {item}</button>'
-
-menu_html += '</div>'
+    active_class = "active" if st.session_state.current_page == item else ""
+    header_html += f'<button class="menu-btn {active_class}" onclick="changePage(\'{item}\')">{icon} {item}</button>'
+header_html += '</div>'
 
 # Watchlist count
-menu_html += f'<div style="color: #9E9EB0; font-size: 14px;">📊 {len(st.session_state.watchlist)} assets</div>'
-menu_html += '</div>'
+header_html += f'<div class="watchlist-count">📊 {len(st.session_state.watchlist)} assets</div>'
+header_html += '</div>'
 
 # JavaScript per navigazione
 st.markdown("""
 <script>
 function changePage(page) {
-    const queryParams = new URLSearchParams(window.location.search);
-    queryParams.set('page', page);
-    window.location.search = queryParams.toString();
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    window.location.href = url.toString();
 }
 
-// Forza il refresh del menu
-document.addEventListener('DOMContentLoaded', function() {
+// Assicura che il menu sia visibile
+window.addEventListener('load', function() {
     console.log('Menu loaded');
 });
 </script>
-""" + menu_html, unsafe_allow_html=True)
+""" + header_html, unsafe_allow_html=True)
 
 # Gestione parametri URL
 query_params = st.query_params
@@ -195,7 +204,7 @@ if "asset" in query_params:
 # Contenuto principale
 st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
-# Routing pagine
+# Routing pagine con try/except
 try:
     if st.session_state.current_page == "SCAN":
         from ui_streamlit.pages.scan import show_page
@@ -240,15 +249,17 @@ try:
     elif st.session_state.current_page == "API":
         from ui_streamlit.pages.api_dashboard import render
         render()
-            
+        
 except Exception as e:
-    st.error(f"Errore: {e}")
+    st.error(f"Errore nel caricamento della pagina: {e}")
+    if st.session_state.get('debug_mode', False):
+        st.exception(e)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # Footer
 st.markdown(f"""
-<div class='app-footer' style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(26, 31, 46, 0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(240, 185, 11, 0.2); padding: 12px 32px; color: #9E9EB0; font-size: 12px; display: flex; justify-content: space-between; z-index: 9999; height: 50px;">
+<div class='app-footer'>
     <span>📅 {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}</span>
     <span>⚡ GOLDEN EYE PRO 4.0</span>
     <span>⚠️ Solo scopo educativo</span>
