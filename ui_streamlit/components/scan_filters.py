@@ -1,8 +1,6 @@
 import streamlit as st
 
 def render_scan_filters():
-    """Filtri avanzati con slider e checkbox"""
-    # Inizializzazione valori di default
     defaults = {
         'filter_min_confidence': 1,
         'filter_show_neutral': True,
@@ -12,14 +10,13 @@ def render_scan_filters():
         'filter_show_strong': True,
         'filter_min_score': 0
     }
-    for key, val in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = val
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
 
     with st.expander("🔧 Filtri Avanzati", expanded=False):
         st.slider("Livello minimo", 1, 5, key="filter_min_confidence", format="L%d")
         st.slider("Score minimo", 0, 100, key="filter_min_score")
-
         st.divider()
         col1, col2 = st.columns(2)
         with col1:
@@ -29,7 +26,6 @@ def render_scan_filters():
         with col2:
             st.checkbox("🟡 Medio (L4)", key="filter_show_medium")
             st.checkbox("🔥 Forte (L5)", key="filter_show_strong")
-
         st.divider()
         st.caption("Preset rapidi:")
         cols = st.columns(4)
@@ -63,4 +59,3 @@ def render_scan_filters():
         "show_medium": st.session_state.filter_show_medium,
         "show_strong": st.session_state.filter_show_strong
     }
-    
