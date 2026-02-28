@@ -49,8 +49,14 @@ forex_icon = "💱" if weekday < 5 else "🔒"
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 menu_icons = ["🔍", "📊", "📋", "⚙️", "🤖", "📡"]
 
+# Costruisce i bottoni del menu
+menu_buttons = ""
+for item, icon in zip(menu_items, menu_icons):
+    active_class = "active" if st.session_state.current_page == item else ""
+    menu_buttons += f'<button class="menu-btn {active_class}" onclick="changePage(\'{item}\')">{icon} {item}</button>'
+
 header_html = f'''
-<div class="custom-header" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 2rem; background: rgba(18, 23, 40, 0.95); backdrop-filter: blur(12px); border-bottom: 2px solid #f0b90b; position: fixed; top: 0; left: 0; right: 0; z-index: 10000; flex-wrap: wrap; gap: 1rem;">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 2rem; background: rgba(18, 23, 40, 0.95); backdrop-filter: blur(12px); border-bottom: 2px solid #f0b90b; position: fixed; top: 0; left: 0; right: 0; z-index: 10000; flex-wrap: wrap; gap: 1rem; font-family: 'Inter', sans-serif;">
     <!-- Logo -->
     <div style="display: flex; align-items: center; gap: 0.5rem;">
         <span style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #f0b90b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">👁️ GOLDEN EYE</span>
@@ -59,16 +65,11 @@ header_html = f'''
     
     <!-- Menu -->
     <div style="display: flex; gap: 0.3rem; background: rgba(44, 44, 58, 0.6); padding: 0.3rem; border-radius: 40px; border: 1px solid rgba(240, 185, 11, 0.3); flex-wrap: wrap;">
-'''
-for item, icon in zip(menu_items, menu_icons):
-    active = "active" if st.session_state.current_page == item else ""
-    header_html += f'<button class="menu-btn {active}" onclick="changePage(\'{item}\')" style="padding: 0.5rem 1.2rem; border-radius: 30px; border: none; font-weight: 600; font-size: 0.9rem; background: {"#f0b90b" if active else "transparent"}; color: {"#0a0a0f" if active else "#9ca3af"}; cursor: pointer; transition: 0.2s;">{icon} {item}</button>'
-
-header_html += f'''
+        {menu_buttons}
     </div>
     
     <!-- Info mercato compatte -->
-    <div style="display: flex; align-items: center; gap: 1.5rem; color: #94a3b8; font-size: 0.8rem;">
+    <div style="display: flex; align-items: center; gap: 1rem; color: #94a3b8; font-size: 0.8rem;">
         <div style="display: flex; align-items: center; gap: 0.3rem;">
             <span>🕒</span>
             <span style="color: #f0b90b; font-weight: 600;">{now.strftime("%H:%M")}</span>
@@ -90,7 +91,7 @@ header_html += f'''
             <span>⚡</span>
             <span style="color: #f0b90b;">4.0.0</span>
         </div>
-        <div class="watchlist-badge" style="background: #2c2c3a; border: 1px solid #f0b90b; border-radius: 30px; padding: 0.2rem 1rem; color: #f0b90b; font-weight: 600;">
+        <div style="background: #2c2c3a; border: 1px solid #f0b90b; border-radius: 30px; padding: 0.2rem 1rem; color: #f0b90b; font-weight: 600;">
             📊 {len(st.session_state.watchlist)}
         </div>
     </div>
@@ -103,11 +104,34 @@ function changePage(page) {{
     window.location.href = url.toString();
 }}
 </script>
+
+<style>
+.menu-btn {{
+    padding: 0.5rem 1.2rem;
+    border-radius: 30px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: transparent;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: 0.2s;
+}}
+.menu-btn:hover {{
+    background: rgba(60, 60, 74, 0.8);
+    color: white;
+}}
+.menu-btn.active {{
+    background: #f0b90b;
+    color: #0a0a0f;
+}}
+</style>
 '''
 
-st.markdown(header_html, unsafe_allow_html=True)
+# Usa components.html per iniettare l'header in modo sicuro
+st.components.v1.html(header_html, height=100)
 
-# Contenitore principale con margine superiore per evitare sovrapposizione
+# Contenitore principale con margine superiore
 st.markdown('<div class="main-content" style="margin-top: 6rem; padding: 0 2rem 4rem;">', unsafe_allow_html=True)
 
 # Routing pagine
@@ -150,7 +174,7 @@ except Exception as e:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Footer (sempre visibile)
+# Footer
 st.markdown(f'''
 <div style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(18, 23, 40, 0.95); backdrop-filter: blur(12px); border-top: 1px solid #f0b90b; padding: 0.8rem 2rem; color: #94a3b8; font-size: 0.8rem; display: flex; justify-content: space-between; z-index: 9999;">
     <span>📅 {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}</span>
