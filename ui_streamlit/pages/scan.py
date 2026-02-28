@@ -6,7 +6,7 @@ from ui_streamlit.components.scan_filters import render_scan_filters
 from ui_streamlit.components.card import render_result_card
 
 def show_page():
-    st.subheader("🔍 RADAR SCAN", divider="orange")
+    st.markdown("## 🔍 RADAR SCAN", unsafe_allow_html=True)
 
     col_f1, col_f2 = st.columns([3, 1])
     with col_f1:
@@ -46,13 +46,13 @@ def show_page():
     st.divider()
 
     if st.session_state.get('scan_results'):
-        # Statistiche riepilogo
+        # Statistiche
         level_counts = {}
         for r in st.session_state.scan_results:
             level = r.get('level', 1)
             level_counts[level] = level_counts.get(level, 0) + 1
 
-        st.subheader("📊 Riepilogo")
+        st.markdown("### 📊 Riepilogo")
         cols = st.columns(5)
         with cols[0]:
             st.metric("Totale", len(st.session_state.scan_results))
@@ -66,7 +66,7 @@ def show_page():
             st.metric("📈 L2", level_counts.get(2, 0) + level_counts.get(1, 0))
 
         st.divider()
-        st.subheader("🎯 Segnali")
+        st.markdown("### 🎯 Segnali")
 
         filtered = [r for r in st.session_state.scan_results
                     if r.get('level', 1) >= filters.get('min_confidence', 1)]
