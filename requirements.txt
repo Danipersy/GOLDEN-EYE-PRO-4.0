@@ -17,3 +17,5 @@ plotly>=5.24.0
 
 # Technical Analysis - Alternativa stabile
 ta>=0.10.2
+pandas_ta>=0.3.14b0
+pandas-ta
