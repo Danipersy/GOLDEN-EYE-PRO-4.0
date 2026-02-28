@@ -4,12 +4,8 @@ import requests
 import pandas as pd
 import time
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 from providers.base_provider import count_api_call
-
-# Cache per evitare chiamate duplicate
-_data_cache = {}
-_cache_timestamp = {}
 
 def get_api_keys():
     """Recupera chiavi API da st.secrets"""
@@ -17,36 +13,27 @@ def get_api_keys():
     td_key = st.secrets.get("TWELVEDATA_KEY", "")
     return alpha_key, td_key
 
+@st.cache_data(ttl=300, show_spinner=False)
 def fetch_with_fallback(symbol, interval="15m", period="1mo"):
-    """Prova più provider in sequenza"""
-    
-    # Controlla cache (5 minuti)
-    cache_key = f"{symbol}_{interval}_{period}"
-    if cache_key in _data_cache:
-        cache_age = time.time() - _cache_timestamp.get(cache_key, 0)
-        if cache_age < 300:  # 5 minuti
-            return _data_cache[cache_key]
+    """Prova più provider in sequenza con caching"""
     
     # Prova Yahoo
-    try:
-        ticker = yf.Ticker(symbol)
-        df = ticker.history(period=period, interval=interval)
-        
-        if not df.empty:
-            df = df.rename(columns={
-                'Open': 'open', 'High': 'high', 'Low': 'low',
-                'Close': 'close', 'Volume': 'volume'
-            })
-            df = df.reset_index()
-            df = df.rename(columns={'Datetime': 'datetime', 'Date': 'datetime'})
-            
-            # Salva in cache
-            _data_cache[cache_key] = df
-            _cache_timestamp[cache_key] = time.time()
-            
+    df = fetch_yahoo(symbol, interval, period)
+    if df is not None:
+        return df
+    
+    # Se Yahoo fallisce, prova altri provider
+    alpha_key, td_key = get_api_keys()
+    
+    if alpha_key:
+        df = fetch_alphavantage(symbol, interval, period, alpha_key)
+        if df is not None:
             return df
-    except Exception as e:
-        pass
+    
+    if td_key:
+        df = fetch_twelvedata(symbol, interval, period, td_key)
+        if df is not None:
+            return df
     
     return None
 
@@ -65,7 +52,12 @@ def fetch_yahoo(symbol, interval="15m", period="1mo"):
             'Close': 'close', 'Volume': 'volume'
         })
         df = df.reset_index()
-        df = df.rename(columns={'Datetime': 'datetime', 'Date': 'datetime'})
+        
+        # Gestione nome colonna datetime
+        if 'Datetime' in df.columns:
+            df = df.rename(columns={'Datetime': 'datetime'})
+        elif 'Date' in df.columns:
+            df = df.rename(columns={'Date': 'datetime'})
         
         return df
     except Exception as e:
@@ -96,6 +88,12 @@ def fetch_alphavantage(symbol, interval="15m", period="1mo", api_key=None):
         }
         
         response = requests.get(url, params=params, timeout=10)
+        
+        # Gestione rate limit
+        if response.status_code == 429:
+            time.sleep(60)
+            return None
+            
         data = response.json()
         
         time_key = f"Time Series ({av_interval})"
@@ -136,15 +134,24 @@ def fetch_twelvedata(symbol, interval="15m", period="1mo", api_key=None):
         }
         td_interval = interval_map.get(interval, "15min")
         
+        # Converti simbolo per TwelveData
+        td_symbol = symbol.replace("-", "/")
+        
         url = "https://api.twelvedata.com/time_series"
         params = {
-            "symbol": symbol,
+            "symbol": td_symbol,
             "interval": td_interval,
             "outputsize": 500,
             "apikey": api_key
         }
         
         response = requests.get(url, params=params, timeout=10)
+        
+        # Gestione rate limit
+        if response.status_code == 429:
+            time.sleep(60)
+            return None
+            
         data = response.json()
         
         if "values" not in data:
@@ -172,32 +179,25 @@ def fetch_twelvedata(symbol, interval="15m", period="1mo", api_key=None):
         print(f"TwelveData errore: {e}")
         return None
 
+@st.cache_data(ttl=300, show_spinner=False)
 def scan_symbol(symbol, interval="15m", period="1mo"):
-    """Scansione singolo simbolo"""
-    alpha_key, td_key = get_api_keys()
+    """Scansione singolo simbolo con caching"""
     
-    # Prova Yahoo prima
-    df = fetch_yahoo(symbol, interval, period)
-    
-    # Se Yahoo fallisce, prova Alpha Vantage
-    if df is None and alpha_key:
-        df = fetch_alphavantage(symbol, interval, period, alpha_key)
-    
-    # Se Alpha Vantage fallisce, prova TwelveData
-    if df is None and td_key:
-        df = fetch_twelvedata(symbol, interval, period, td_key)
+    # Prova con fallback
+    df = fetch_with_fallback(symbol, interval, period)
     
     if df is not None and not df.empty:
-        current_price = df['close'].iloc[-1]
-        prev_price = df['close'].iloc[-2] if len(df) > 1 else current_price
+        current_price = float(df['close'].iloc[-1])
+        prev_price = float(df['close'].iloc[-2]) if len(df) > 1 else current_price
         change = ((current_price - prev_price) / prev_price) * 100 if prev_price > 0 else 0
         
         return {
             'symbol': symbol,
             'price': current_price,
             'change': change,
-            'volume': df['volume'].iloc[-1],
-            'timestamp': datetime.now()
+            'volume': float(df['volume'].iloc[-1]),
+            'timestamp': datetime.now(),
+            'data': df  # Includi il dataframe per uso successivo
         }
     
     return {
@@ -206,20 +206,23 @@ def scan_symbol(symbol, interval="15m", period="1mo"):
         'change': 0,
         'volume': 0,
         'timestamp': datetime.now(),
-        'error': 'No data'
+        'error': 'No data',
+        'data': None
     }
 
 def fetch_yf(symbol, interval="15m", period="1mo", tail=None):
-    """Compatibile con fetch_yf originale"""
-    df = scan_symbol(symbol, interval, period)
-    if df and 'error' not in df and tail and df.get('price'):
-        # Questo è un placeholder - non abbiamo il dataframe completo
-        return None
-    return None  # Da migliorare
+    """Compatibile con fetch_yf originale - restituisce DataFrame"""
+    result = scan_symbol(symbol, interval, period)
+    if result and 'data' in result and result['data'] is not None:
+        df = result['data']
+        if tail:
+            return df.tail(tail)
+        return df
+    return None
 
 def fetch_yf_ohlcv(symbol, interval="15m", period="1mo"):
-    """Compatibile con fetch_yf_ohlcv originale"""
-    return scan_symbol(symbol, interval, period)
+    """Compatibile con fetch_yf_ohlcv originale - restituisce DataFrame"""
+    return fetch_yf(symbol, interval, period)
 
 def run_radar_scan_yahoo(symbols, interval="15m", period="1mo"):
     """Esegue scansione radar"""
