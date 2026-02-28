@@ -1,21 +1,18 @@
 # Core
 streamlit>=1.38.0
 pandas>=2.2.0
-numpy>=1.26.0
+numpy==2.2.6
+plotly>=5.24.0
 
 # Dati
 yfinance>=0.2.40
 requests>=2.32.0
 
+# Technical Analysis
+pandas_ta>=0.3.14b0
+ta>=0.10.2
+
 # Utility
 python-dotenv>=1.0.0
 pytz>=2024.1
 urllib3>=2.2.0
-
-# Grafici
-plotly>=5.24.0
-
-# Technical Analysis - Alternativa stabile
-ta>=0.10.2
-pandas_ta>=0.3.14b0
-pandas-ta
