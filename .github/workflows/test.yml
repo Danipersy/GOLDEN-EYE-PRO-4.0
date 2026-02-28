@@ -1,11 +1,6 @@
-cat > .github/workflows/test.yml << 'EOF'
-name: Test Golden Eye Pro
+name: Test
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push]
 
 jobs:
   test:
@@ -16,6 +11,4 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install pandas-ta
-      - run: python -c "import pandas_ta; print('✅ pandas_ta OK')"
-      - run: echo "✅ Test completati!"
-EOF
+      - run: python -c "import pandas_ta"
