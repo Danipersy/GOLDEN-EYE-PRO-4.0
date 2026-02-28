@@ -95,23 +95,23 @@ class TwelveDataProvider(BaseProvider):
         return None, "MAX_RETRIES"
     
     @st.cache_data(ttl=600, show_spinner=False)
-    def fetch_15m(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 15m con caching"""
-        return self.fetch(self._fetch_time_series, symbol, "15min", 5000)
+    def fetch_15m(_self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
+        """Fetch 15m con caching - NOTA: _self per evitare hashing"""
+        return _self.fetch(_self._fetch_time_series, symbol, "15min", 5000)
     
     @st.cache_data(ttl=600, show_spinner=False)
-    def fetch_1h(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 1h con caching"""
-        return self.fetch(self._fetch_time_series, symbol, "1h", 2000)
+    def fetch_1h(_self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
+        """Fetch 1h con caching - NOTA: _self per evitare hashing"""
+        return _self.fetch(_self._fetch_time_series, symbol, "1h", 2000)
     
     @st.cache_data(ttl=600, show_spinner=False)
-    def fetch_4h(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 4h con caching"""
-        return self.fetch(self._fetch_time_series, symbol, "4h", 1000)
+    def fetch_4h(_self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
+        """Fetch 4h con caching - NOTA: _self per evitare hashing"""
+        return _self.fetch(_self._fetch_time_series, symbol, "4h", 1000)
     
     @st.cache_data(ttl=3600, show_spinner=False)
-    def search_symbols(self, query: str, outputsize: int = 20) -> List[Dict[str, str]]:
-        """Cerca simboli con caching"""
+    def search_symbols(_self, query: str, outputsize: int = 20) -> List[Dict[str, str]]:
+        """Cerca simboli con caching - NOTA: _self per evitare hashing"""
         if not TWELVEDATA_KEY or not query or len(query.strip()) < 2:
             return []
         
