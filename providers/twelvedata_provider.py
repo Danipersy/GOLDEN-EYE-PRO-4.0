@@ -4,24 +4,60 @@ import streamlit as st
 import requests
 from typing import Optional, Tuple, List, Dict, Any
 from utils.error_handler import error_handler
-from providers.base_provider import BaseProvider
-from config import TWELVEDATA_KEY
+from providers.base_provider import BaseProvider, count_api_call
 from utils.helpers import http_session, normalize_ohlcv_df
 
+# Leggi chiave da secrets
+TWELVEDATA_KEY = st.secrets.get("TWELVEDATA_KEY", "")
+
+def convert_symbol_for_twelvedata(symbol: str) -> str:
+    """
+    Converte simbolo da formato Yahoo (BTC-USD) a TwelveData (BTC/USD)
+    
+    Esempi:
+    - BTC-USD → BTC/USD
+    - ETH-USD → ETH/USD
+    - BTCUSDT → BTC/USDT (non supportato, ma gestito)
+    - AAPL → AAPL (azioni)
+    """
+    # Se è già nel formato con slash, lascia stare
+    if "/" in symbol:
+        return symbol
+    
+    # Se è nel formato BTC-USD, converti in BTC/USD
+    if "-" in symbol:
+        return symbol.replace("-", "/")
+    
+    # Se è BTCUSDT, prova a convertire in BTC/USDT
+    if "USDT" in symbol:
+        return symbol.replace("USDT", "/USDT")
+    
+    # Se è BTCUSD, converti in BTC/USD
+    if "USD" in symbol and len(symbol) > 3:
+        base = symbol[:-3]
+        return f"{base}/USD"
+    
+    # Altrimenti lascia com'è
+    return symbol
+
 class TwelveDataProvider(BaseProvider):
-    """Provider TwelveData con caching su disco (SENZA st.cache_data)"""
+    """Provider TwelveData con caching su disco"""
     
     def __init__(self):
         super().__init__("twelvedata", ttl=600)
     
+    @count_api_call('twelvedata', 'time_series')
     def _fetch_time_series(self, symbol: str, interval: str, outputsize: int):
         """Fetch interno senza decoratori"""
         if not TWELVEDATA_KEY:
             return None, "NO_KEY"
         
-        url = f"https://api.twelvedata.com/time_series"
+        # Converti simbolo per TwelveData
+        td_symbol = convert_symbol_for_twelvedata(symbol)
+        
+        url = "https://api.twelvedata.com/time_series"
         params = {
-            "symbol": symbol,
+            "symbol": td_symbol,
             "interval": interval,
             "outputsize": outputsize,
             "apikey": TWELVEDATA_KEY,
@@ -30,15 +66,18 @@ class TwelveDataProvider(BaseProvider):
         
         try:
             session = http_session()
-            response = session.get(url, params=params, timeout=10)
+            response = session.get(url, params=params, timeout=15)
             
             if response.status_code == 429:
                 return None, "RATE_LIMIT"
             
+            if response.status_code != 200:
+                return None, f"HTTP_{response.status_code}"
+            
             data = response.json()
             
-            if data.get("status") == "error":
-                return None, "ERROR"
+            if "values" not in data:
+                return None, "NO_VALUES"
             
             values = data.get("values")
             if not values:
@@ -49,45 +88,37 @@ class TwelveDataProvider(BaseProvider):
             
             return df, "TwelveData"
             
+        except requests.exceptions.Timeout:
+            return None, "TIMEOUT"
+        except requests.exceptions.ConnectionError:
+            return None, "CONNECTION_ERROR"
         except Exception as e:
             error_handler.logger.error(f"TwelveData error: {e}")
             return None, "ERROR"
     
     def fetch_15m(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 15m con caching manuale"""
-        result = self.fetch(self._fetch_time_series, symbol, "15min", 420)
-        if result is None:
-            return None, "ERROR"
-        return result
+        """Fetch 15m con 5000 candles"""
+        return self.fetch(self._fetch_time_series, symbol, "15min", 5000)
     
     def fetch_1h(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 1h con caching manuale"""
-        result = self.fetch(self._fetch_time_series, symbol, "1h", 320)
-        if result is None:
-            return None, "ERROR"
-        return result
+        """Fetch 1h con 2000 candles"""
+        return self.fetch(self._fetch_time_series, symbol, "1h", 2000)
     
     def fetch_4h(self, symbol: str) -> Tuple[Optional[pd.DataFrame], str]:
-        """Fetch 4h con caching manuale"""
-        result = self.fetch(self._fetch_time_series, symbol, "4h", 220)
-        if result is None:
-            return None, "ERROR"
-        return result
+        """Fetch 4h con 1000 candles"""
+        return self.fetch(self._fetch_time_series, symbol, "4h", 1000)
     
     def search_symbols(self, query: str, outputsize: int = 20) -> List[Dict[str, str]]:
-        """Cerca simboli con caching"""
-        if not TWELVEDATA_KEY:
-            return []
-        if not query or len(query.strip()) < 3:
+        """Cerca simboli su TwelveData"""
+        if not TWELVEDATA_KEY or not query or len(query.strip()) < 2:
             return []
         
-        # Usa caching manuale
         cache_key = self.get_cache_key("search", query, outputsize)
         cached = self.get_from_cache(cache_key)
         if cached is not None:
             return cached
         
-        url = f"https://api.twelvedata.com/symbol_search"
+        url = "https://api.twelvedata.com/symbol_search"
         params = {
             "symbol": query.strip(),
             "outputsize": outputsize,
@@ -104,9 +135,6 @@ class TwelveDataProvider(BaseProvider):
             data = response.json()
             items = data.get("data", [])
             
-            if not isinstance(items, list):
-                return []
-            
             results = []
             for item in items:
                 sym = item.get("symbol")
@@ -114,15 +142,30 @@ class TwelveDataProvider(BaseProvider):
                     continue
                 name = item.get("instrument_name") or item.get("name") or ""
                 exch = item.get("exchange") or ""
+                currency = item.get("currency") or ""
+                
+                # Costruisci label informativa
                 label = sym
-                extra = [x for x in [name, exch] if x]
-                if extra:
-                    label += " - " + " | ".join(extra)
-                results.append({"symbol": sym, "label": label})
+                details = []
+                if name:
+                    details.append(name)
+                if exch:
+                    details.append(exch)
+                if currency and currency != "USD":
+                    details.append(currency)
+                
+                if details:
+                    label += f" - {' | '.join(details)}"
+                
+                results.append({
+                    "symbol": sym,
+                    "label": label,
+                    "name": name,
+                    "exchange": exch,
+                    "currency": currency
+                })
             
-            # Salva in cache
             self.save_to_cache(cache_key, results)
-            
             return results
             
         except Exception as e:

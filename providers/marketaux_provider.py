@@ -4,8 +4,10 @@ import streamlit as st
 from typing import Dict, Any, List
 from datetime import datetime, timedelta
 from utils.error_handler import error_handler
+from providers.base_provider import count_api_call
 
 @st.cache_data(ttl=3600, show_spinner=False)
+@count_api_call('marketaux', 'news')
 def fetch_marketaux_sentiment(symbols: List[str]) -> Dict[str, Any]:
     """Marketaux con caching Streamlit (parametri semplici)"""
     api_key = st.secrets.get("MARKETAUX_TOKEN", "")

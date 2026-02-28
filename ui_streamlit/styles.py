@@ -200,29 +200,100 @@ def apply_styles():
         border: none !important;
     }
     
-    /* Tabs Moderni */
+    /* Migliora i tab della sidebar */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background: rgba(22, 27, 34, 0.6);
-        padding: 8px;
-        border-radius: 16px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(48, 54, 61, 0.5);
+        gap: 2px;
+        background: rgba(22, 27, 34, 0.8);
+        padding: 4px;
+        border-radius: 12px;
+        border: 1px solid rgba(240, 185, 11, 0.2);
+        margin-bottom: 15px;
     }
     
     .stTabs [data-baseweb="tab"] {
-        border-radius: 12px;
-        padding: 8px 16px;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
         background: rgba(31, 41, 55, 0.6);
         color: #94a3b8;
-        font-weight: 600;
         transition: all 0.2s ease;
+        margin: 0 2px;
     }
     
     .stTabs [aria-selected="true"] {
         background: linear-gradient(135deg, #f0b90b, #fbbf24);
         color: #1f2937 !important;
         font-weight: 700;
+        border: none;
+    }
+    
+    /* Separatore più elegante */
+    .sidebar-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(240, 185, 11, 0.3), transparent);
+        margin: 15px 0;
+    }
+    
+    /* Radar neutral - per segnali laterali */
+    .radar-neutral {
+        background: linear-gradient(135deg, rgba(148, 163, 184, 0.15), rgba(100, 116, 139, 0.1));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        padding: 16px 20px;
+        border-radius: 20px;
+        margin: 12px 0;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(148, 163, 184, 0.15);
+    }
+    .radar-neutral:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(148, 163, 184, 0.25);
+    }
+
+    /* Badge per livello segnale */
+    .signal-level {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+    .level-5 { background: #00ff8820; color: #00ff88; border: 1px solid #00ff8840; }
+    .level-4 { background: #f0b90b20; color: #f0b90b; border: 1px solid #f0b90b40; }
+    .level-3 { background: #3b82f620; color: #3b82f6; border: 1px solid #3b82f640; }
+    .level-2 { background: #8b5cf620; color: #8b5cf6; border: 1px solid #8b5cf640; }
+    .level-1 { background: #94a3b820; color: #94a3b8; border: 1px solid #94a3b840; }
+
+    /* Tooltip personalizzato */
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+        border-bottom: 1px dotted #94a3b8;
+    }
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 200px;
+        background: #1f2937;
+        color: #fff;
+        text-align: center;
+        padding: 8px;
+        border-radius: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        border: 1px solid #f0b90b;
+        font-size: 0.8rem;
+    }
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
     }
     
     /* Mobile Responsive */
@@ -269,7 +340,7 @@ def apply_styles():
             font-size: 0.7rem;
         }
         
-        .radar-buy, .radar-sell {
+        .radar-buy, .radar-sell, .radar-neutral {
             padding: 12px;
         }
     }
@@ -319,94 +390,5 @@ def apply_styles():
     ::-webkit-scrollbar-thumb:hover {
         background: #fbbf24;
     }
-    /* Radar neutral - per segnali laterali */
-.radar-neutral {
-    background: linear-gradient(135deg, rgba(148, 163, 184, 0.15), rgba(100, 116, 139, 0.1));
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    padding: 16px 20px;
-    border-radius: 20px;
-    margin: 12px 0;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(148, 163, 184, 0.15);
-}
-.radar-neutral:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(148, 163, 184, 0.25);
-}
-
-/* Badge per forza segnale */
-.signal-strength {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-left: 8px;
-}
-.strength-alta { background: #00ff8820; color: #00ff88; border: 1px solid #00ff8840; }
-.strength-media { background: #f0b90b20; color: #f0b90b; border: 1px solid #f0b90b40; }
-.strength-debole { background: #94a3b820; color: #94a3b8; border: 1px solid #94a3b840; }
-.strength-neutrale { background: #94a3b810; color: #94a3b8; border: 1px solid #94a3b820; }
-/* Radar neutral - per segnali laterali */
-.radar-neutral {
-    background: linear-gradient(135deg, rgba(148, 163, 184, 0.15), rgba(100, 116, 139, 0.1));
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    padding: 16px 20px;
-    border-radius: 20px;
-    margin: 12px 0;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(148, 163, 184, 0.15);
-}
-.radar-neutral:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 35px rgba(148, 163, 184, 0.25);
-}
-
-/* Badge per livello segnale */
-.signal-level {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-left: 8px;
-}
-.level-5 { background: #00ff8820; color: #00ff88; border: 1px solid #00ff8840; }
-.level-4 { background: #f0b90b20; color: #f0b90b; border: 1px solid #f0b90b40; }
-.level-3 { background: #3b82f620; color: #3b82f6; border: 1px solid #3b82f640; }
-.level-2 { background: #8b5cf620; color: #8b5cf6; border: 1px solid #8b5cf640; }
-.level-1 { background: #94a3b820; color: #94a3b8; border: 1px solid #94a3b840; }
-
-/* Tooltip personalizzato */
-.tooltip {
-    position: relative;
-    display: inline-block;
-    cursor: help;
-    border-bottom: 1px dotted #94a3b8;
-}
-.tooltip .tooltiptext {
-    visibility: hidden;
-    width: 200px;
-    background: #1f2937;
-    color: #fff;
-    text-align: center;
-    padding: 8px;
-    border-radius: 8px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    margin-left: -100px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    border: 1px solid #f0b90b;
-    font-size: 0.8rem;
-}
-.tooltip:hover .tooltiptext {
-    visibility: visible;
-    opacity: 1;
-}
 </style>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)

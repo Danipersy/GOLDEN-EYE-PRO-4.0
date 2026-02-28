@@ -5,9 +5,8 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from providers.twelvedata_provider import fetch_td_15m, fetch_td_1h, fetch_td_4h
 from providers.marketaux_provider import fetch_marketaux_sentiment
-from providers.yahoo_provider import fetch_yf_ohlcv
+from providers.multi_provider import fetch_yf_ohlcv
 from indicators.robust_ta import compute_indicators_15m, decide_signal
-from utils.helpers import get_market_status
 from ui_streamlit.components.validation_panel import validate_data_quality
 from ui_streamlit.components.position_panel import render_position_panel
 from ai.asset_analyzer import render_ai_suggestions
@@ -36,8 +35,11 @@ def calculate_timeout(asset: str, atr: float, price: float) -> dict:
     }
 
 def fetch_td_cached(symbol: str):
-    """Fetch dati TwelveData"""
-    return fetch_td_15m(symbol)[0], fetch_td_1h(symbol)[0], fetch_td_4h(symbol)[0]
+    """Fetch dati TwelveData con debug"""
+    df15, src15 = fetch_td_15m(symbol)
+    df1h, src1h = fetch_td_1h(symbol)
+    df4h, src4h = fetch_td_4h(symbol)
+    return df15, df1h, df4h
 
 def run_detail(symbol: str, use_td: bool = True):
     """Esegue analisi dettaglio"""
@@ -45,13 +47,21 @@ def run_detail(symbol: str, use_td: bool = True):
         df15, df1h, df4h = fetch_td_cached(symbol)
         source = "TwelveData"
     else:
-        df15 = fetch_yf_ohlcv(symbol, "15m", "5d", 420)
-        df1h = fetch_yf_ohlcv(symbol, "1h", "1mo", 320)
-        df4h = fetch_yf_ohlcv(symbol, "4h", "3mo", 220)
+        df15 = fetch_yf_ohlcv(symbol, "15m", "5d")
+        df1h = fetch_yf_ohlcv(symbol, "1h", "1mo")
+        df4h = fetch_yf_ohlcv(symbol, "4h", "3mo")
         source = "Yahoo"
     
-    if df15 is None or len(df15) < (100 if "BTC" in symbol else 210):
-        return "DATA_INSUFFICIENT"
+    if df15 is None:
+        return f"DATA_INSUFFICIENT - Nessun dato 15m da {source}"
+    
+    if "BTC" in symbol or "ETH" in symbol:
+        min_candles = 100
+    else:
+        min_candles = 210
+    
+    if len(df15) < min_candles:
+        return f"DATA_INSUFFICIENT - Solo {len(df15)} candles da {source} (min {min_candles})"
     
     st.session_state.data_source = source
     st.session_state.last_data_timestamp = df15["datetime"].iloc[-1]
@@ -63,9 +73,9 @@ def run_detail(symbol: str, use_td: bool = True):
     # Analisi MTF
     up1h = True
     up4h = True
-    if df1h is not None:
+    if df1h is not None and len(df1h) > 50:
         up1h = df1h["close"].iloc[-1] > df1h["close"].ewm(50).mean().iloc[-1]
-    if df4h is not None:
+    if df4h is not None and len(df4h) > 20:
         up4h = df4h["close"].iloc[-1] > df4h["close"].ewm(20).mean().iloc[-1]
     
     mtf_long = up1h and up4h
@@ -73,50 +83,76 @@ def run_detail(symbol: str, use_td: bool = True):
     
     # Indicatori
     ind = compute_indicators_15m(df15)
-    sig, col, bias, rsi, atr, slope, adx, sqz = decide_signal(ind, mtf_long, mtf_short)
+    signal = decide_signal(ind, mtf_long, mtf_short)
     
     p = float(df15["close"].iloc[-1])
     e200 = float(ind["ema200"].iloc[-1])
     
     # SL/TP
-    dist = atr * SL_ATR
-    sl = p - dist if bias is True else p + dist if bias is False else 0
-    tp = p + dist * (TP_ATR/SL_ATR) if bias is True else p - dist * (TP_ATR/SL_ATR) if bias is False else 0
+    dist = signal['atr'] * SL_ATR
+    if signal['is_long']:
+        sl = p - dist
+        tp = p + dist * (TP_ATR/SL_ATR)
+    elif signal['is_long'] is False:
+        sl = p + dist
+        tp = p - dist * (TP_ATR/SL_ATR)
+    else:
+        sl = 0
+        tp = 0
     
-    timeout = calculate_timeout(symbol, atr, p)
+    timeout = calculate_timeout(symbol, signal['atr'], p)
     
-    st.session_state.detail_data = {'p': p, 'atr': atr, 'asset': symbol}
+    st.session_state.detail_data = {'p': p, 'atr': signal['atr'], 'asset': symbol}
     
     return {
-        "p": p, "e200": e200, "rsi": rsi, "atr": atr, "adx": adx,
-        "sqz": sqz, "sig": sig, "col": col, "bias": bias, "sl": sl, "tp": tp,
-        "timeout": timeout, "hist": df15.set_index("datetime")["close"].tail(90),
-        "mtf_long": mtf_long, "mtf_short": mtf_short
+        "p": p, 
+        "e200": e200, 
+        "rsi": signal['rsi'], 
+        "atr": signal['atr'], 
+        "adx": signal['adx'],
+        "sqz": signal['sqz_on'], 
+        "sig": signal['display'], 
+        "col": signal['color'], 
+        "bias": signal['is_long'], 
+        "sl": sl, 
+        "tp": tp,
+        "timeout": timeout, 
+        "hist": df15.set_index("datetime")["close"].tail(90),
+        "mtf_long": mtf_long, 
+        "mtf_short": mtf_short,
+        "strength": signal['strength']
     }
 
 def render_news_simple(symbol: str):
     """News compatte"""
     data = fetch_marketaux_sentiment([symbol])
-    if data:
+    if data and data.get('count', 0) > 0:
         st.markdown(f"📰 **News:** {data.get('count', 0)} | **Sentiment:** {data.get('label', 'N/D')}")
     else:
         st.markdown("📰 Nessuna news recente")
 
 def render_detail_panel(symbol: str):
-    """Pannello dettaglio completo"""
-    st.markdown(f"## 📊 {symbol}")
+    """Pannello dettaglio completo - SENZA titolo doppio"""
     
     col1, col2 = st.columns([3, 1])
     with col2:
-        use_td = st.checkbox("📊 TwelveData", value=True)
+        use_td = st.checkbox("📊 TwelveData", value=True, help="Usa TwelveData (più preciso) o Yahoo", key="td_checkbox")
     
-    data = run_detail(symbol, use_td)
+    with st.spinner(f"Caricamento dati {symbol}..."):
+        data = run_detail(symbol, use_td)
     
     if isinstance(data, str):
-        st.error(f"Errore: {data}")
+        st.error(f"❌ {data}")
+        st.info("💡 Prova a deselezionare 'TwelveData' per usare Yahoo")
         return None
     
     # Card principale
+    strength_badge = {
+        'STRONG': '🟢 FORTE',
+        'WEAK': '🟡 DEBOLE',
+        'NONE': '⚪ NEUTRALE'
+    }.get(data['strength'], '')
+    
     st.markdown(f"""
     <div style="
         background: linear-gradient(145deg, #1e1e2e, #1a1a2a);
@@ -126,31 +162,32 @@ def render_detail_panel(symbol: str):
         margin: 10px 0;
         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     ">
-        <div style="display:flex; justify-content:space-between;">
-            <span style="font-size:1.2rem;">{data['sig']}</span>
-            <span style="color:{data['col']}; font-weight:bold;">{data['p']:.2f}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:1.3rem; font-weight:bold;">{data['sig']}</span>
+            <span style="color:{data['col']}; font-weight:bold; font-size:1.5rem;">${data['p']:.2f}</span>
         </div>
-        <div style="display:grid; grid-template-columns: repeat(5,1fr); gap:10px; margin-top:15px;">
+        <div style="display:flex; justify-content:space-between; margin-top:5px;">
+            <span style="color:#94a3b8;">{strength_badge}</span>
+            <span style="color:#94a3b8;">Fonte: {st.session_state.get('data_source', 'N/D')}</span>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(6,1fr); gap:10px; margin-top:15px;">
             <div><small>RSI</small><br><b>{data['rsi']:.0f}</b></div>
             <div><small>ADX</small><br><b>{data['adx']:.0f}</b></div>
             <div><small>ATR</small><br><b>{data['atr']:.2f}</b></div>
             <div><small>TEMPO</small><br><b style="color:{data['timeout']['colore']};">{data['timeout']['ore']}</b></div>
             <div><small>CHIUSURA</small><br><b>{data['timeout']['chiusura']}</b></div>
+            <div><small>EMA200</small><br><b>{data['e200']:.2f}</b></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # GRAFICO CORRETTO
+    # GRAFICO
     st.subheader("📈 Andamento")
     
-    # Prepara i dati
     hist_data = data['hist'].reset_index()
     hist_data.columns = ['Data', 'Prezzo']
     
-    # Crea figura
     fig = go.Figure()
-    
-    # Aggiungi linea
     fig.add_trace(go.Scatter(
         x=hist_data['Data'],
         y=hist_data['Prezzo'],
@@ -159,7 +196,6 @@ def render_detail_panel(symbol: str):
         name='Prezzo'
     ))
     
-    # Configura layout
     fig.update_layout(
         template='plotly_dark',
         height=250,
@@ -182,9 +218,9 @@ def render_detail_panel(symbol: str):
     st.subheader("💰 Risk Management")
     col_sl, col_tp = st.columns(2)
     with col_sl:
-        st.metric("Stop Loss", f"${data['sl']:.2f}" if data['sl'] else "N/A")
+        st.metric("Stop Loss", f"${data['sl']:.2f}" if data['sl'] and data['sl'] > 0 else "N/A")
     with col_tp:
-        st.metric("Take Profit", f"${data['tp']:.2f}" if data['tp'] else "N/A")
+        st.metric("Take Profit", f"${data['tp']:.2f}" if data['tp'] and data['tp'] > 0 else "N/A")
     
     # Posizione
     render_position_panel(data['p'], 2, data['atr'], symbol)

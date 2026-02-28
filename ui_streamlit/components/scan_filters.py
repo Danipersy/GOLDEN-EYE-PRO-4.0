@@ -12,89 +12,94 @@ def render_scan_filters():
         'filter_show_trend': True,
         'filter_show_momentum': True,
         'filter_show_medium': True,
-        'filter_show_strong': True
+        'filter_show_strong': True,
+        'filter_min_score': 0
     }
     
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
     
-    # Gestione preset
-    if 'preset_requested' in st.session_state:
-        preset = st.session_state.preset_requested
-        if preset == 'tutti':
-            st.session_state.filter_min_confidence = 1
-        elif preset == 'trend':
-            st.session_state.filter_min_confidence = 2
-        elif preset == 'medi':
-            st.session_state.filter_min_confidence = 4
-        elif preset == 'forti':
-            st.session_state.filter_min_confidence = 5
-        del st.session_state.preset_requested
-    
     with st.expander("🔧 Filtri Avanzati", expanded=False):
         # Livello minimo
         st.markdown("#### 🎯 Livello minimo")
         
         level = st.select_slider(
-            "Filtra per confidenza:",
+            "Confidenza minima:",
             options=[1, 2, 3, 4, 5],
             value=st.session_state.filter_min_confidence,
             format_func=lambda x: {
-                1: "⚪ TUTTI",
-                2: "📈 TENDENZA",
-                3: "📊 MOMENTUM",
-                4: "🟡 MEDI",
-                5: "🟢 SOLO FORTI"
+                1: "⚪ TUTTI (L1+)",
+                2: "📈 TENDENZA (L2+)",
+                3: "📊 MOMENTUM (L3+)",
+                4: "🟡 MEDI (L4+)",
+                5: "🟢 SOLO FORTI (L5)"
             }[x],
             key="confidence_slider"
         )
         st.session_state.filter_min_confidence = level
         
-        # Checkbox categorie
+        # Score minimo
+        st.session_state.filter_min_score = st.slider(
+            "Score minimo",
+            0, 100, 
+            st.session_state.filter_min_score,
+            help="Filtra per score AI (0-100)"
+        )
+        
+        st.divider()
+        
+        # Categorie
         col1, col2 = st.columns(2)
         
         with col1:
-            st.checkbox("⚪ Laterale", key="filter_show_neutral", 
+            st.checkbox("⚪ Laterale (L1)", key="filter_show_neutral",
                        disabled=level > 1,
                        help="Mercato laterale - solo informativo")
-            st.checkbox("📈 Tendenza", key="filter_show_trend",
+            st.checkbox("📈 Tendenza (L2)", key="filter_show_trend",
                        disabled=level > 2,
                        help="Posizione rispetto a EMA200")
-            st.checkbox("📊 Momentum", key="filter_show_momentum",
+            st.checkbox("📊 Momentum (L3)", key="filter_show_momentum",
                        disabled=level > 3,
                        help="Pendenza significativa")
         
         with col2:
-            st.checkbox("🟡 Acquisto/Vendita", key="filter_show_medium",
+            st.checkbox("🟡 Trading Medio (L4)", key="filter_show_medium",
                        disabled=level > 4,
                        help="Segnali di trading medi")
-            st.checkbox("🟢 Forti", key="filter_show_strong",
+            st.checkbox("🟢 Trading Forte (L5)", key="filter_show_strong",
                        disabled=level > 5,
                        help="Segnali di trading forti")
+        
+        st.divider()
         
         # Preset rapidi
         st.markdown("#### ⚡ Preset")
         cols = st.columns(4)
         with cols[0]:
             if st.button("📊 Tutti", use_container_width=True):
-                st.session_state.preset_requested = 'tutti'
+                st.session_state.filter_min_confidence = 1
+                st.session_state.filter_min_score = 0
                 st.rerun()
         with cols[1]:
             if st.button("📈 Trend", use_container_width=True):
-                st.session_state.preset_requested = 'trend'
+                st.session_state.filter_min_confidence = 2
+                st.session_state.filter_min_score = 30
                 st.rerun()
         with cols[2]:
             if st.button("🟡 Medi", use_container_width=True):
-                st.session_state.preset_requested = 'medi'
+                st.session_state.filter_min_confidence = 4
+                st.session_state.filter_min_score = 50
                 st.rerun()
         with cols[3]:
             if st.button("🔥 Forti", use_container_width=True):
-                st.session_state.preset_requested = 'forti'
+                st.session_state.filter_min_confidence = 5
+                st.session_state.filter_min_score = 70
                 st.rerun()
     
     return {
         "min_confidence": st.session_state.filter_min_confidence,
+        "min_score": st.session_state.filter_min_score,
         "show_neutral": st.session_state.filter_show_neutral,
         "show_trend": st.session_state.filter_show_trend,
         "show_momentum": st.session_state.filter_show_momentum,

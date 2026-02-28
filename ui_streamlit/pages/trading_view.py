@@ -1,8 +1,7 @@
-# ui_streamlit/pages.py
+# ui_streamlit/pages/trading_view.py
 import streamlit as st
 from datetime import datetime
 
-# Import delle funzioni dai componenti
 from ui_streamlit.components.header import render_header
 from ui_streamlit.components.scan_panel import render_scan_panel
 from ui_streamlit.components.detail_panel import render_detail_panel
@@ -13,28 +12,23 @@ from strategy.money_manager import render_money_manager_panel
 from strategy.auto_trader import render_auto_trader_panel
 from strategy.auto_trader_stats import render_stats_panel
 
-def render_main_view():
+def render_trading_view():
     """Vista principale con menu a 2 livelli"""
     
-    # Inizializza current_view se non esiste
     if 'current_view' not in st.session_state:
         st.session_state.current_view = 'scan'
     
-    # Header (con badge TwelveData e stato mercato)
     render_header()
     
-    # ============================================================
-    # LIVELLO 1: MENU PRINCIPALE [SCAN] [DETTAGLIO]
-    # ============================================================
     col1, col2, col3 = st.columns([1, 1, 5])
     with col1:
         scan_btn_type = "primary" if st.session_state.current_view == "scan" else "secondary"
-        if st.button("🔍 SCAN", use_container_width=True, type=scan_btn_type):
+        if st.button("🔍 SCAN", use_container_width=True, type=scan_btn_type, key="scan_btn"):
             st.session_state.current_view = "scan"
             st.rerun()
     with col2:
         detail_btn_type = "primary" if st.session_state.current_view == "detail" else "secondary"
-        if st.button("📊 DETTAGLIO", use_container_width=True, type=detail_btn_type):
+        if st.button("📊 DETTAGLIO", use_container_width=True, type=detail_btn_type, key="detail_btn"):
             if st.session_state.radar_select:
                 st.session_state.current_view = "detail"
                 st.rerun()
@@ -43,9 +37,6 @@ def render_main_view():
     
     st.divider()
     
-    # ============================================================
-    # CONTENUTO PRINCIPALE (SCAN o DETTAGLIO)
-    # ============================================================
     if st.session_state.current_view == "scan":
         render_scan_panel()
     else:
@@ -55,13 +46,10 @@ def render_main_view():
             render_backtest_panel(st.session_state.radar_select)
         else:
             st.warning("Nessun asset selezionato. Torna allo SCAN.")
-            if st.button("← Torna allo SCAN"):
+            if st.button("← Torna allo SCAN", key="back_to_scan"):
                 st.session_state.current_view = "scan"
                 st.rerun()
     
-    # ============================================================
-    # LIVELLO 2: TABS STRUMENTI AVANZATI
-    # ============================================================
     st.markdown("---")
     st.markdown("### 🛠️ STRUMENTI AVANZATI")
     
@@ -112,12 +100,3 @@ def render_main_view():
         render_auto_trader_panel()
         st.markdown("---")
         render_stats_panel()
-
-# ============================================================
-# DICHIARAZIONE ESPLICITA DELLE FUNZIONI ESPORTATE
-# ============================================================
-__all__ = ['render_main_view']
-
-# DEBUG: stampa per verificare che il modulo sia caricato
-print("✅ ui_streamlit.pages caricato correttamente")
-print(f"   Funzioni disponibili: {__all__}")
