@@ -15,20 +15,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# CSS GLOBALE PER NASCONDERE I DIV GREZZI
+# CSS GLOBALE
 st.markdown("""
 <style>
-    /* Nascondi i tag HTML grezzi */
-    .stMarkdown div:has(> div[style*="border-left"]) {
-        display: block !important;
-    }
-    
-    /* Assicura che le card siano visibili */
-    div[style*="border-left: 8px solid"] {
-        display: block !important;
-        margin: 16px 0 !important;
-    }
-    
     /* Reset e base */
     .main {
         background: linear-gradient(135deg, #0a0e17 0%, #0f141f 100%);
@@ -39,7 +28,12 @@ st.markdown("""
         background: transparent;
     }
     
-    /* Header */
+    /* Nascondi sidebar */
+    section[data-testid="stSidebar"] {
+        display: none !important;
+    }
+    
+    /* Header fisso */
     .main-header {
         position: fixed;
         top: 0;
@@ -53,6 +47,7 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         align-items: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
     
     /* Menu */
@@ -62,6 +57,8 @@ st.markdown("""
         background: rgba(44, 44, 58, 0.5);
         padding: 4px;
         border-radius: 40px;
+        border: 1px solid rgba(240, 185, 11, 0.2);
+        backdrop-filter: blur(5px);
     }
     
     .menu-item {
@@ -79,14 +76,16 @@ st.markdown("""
     .menu-item:hover {
         background: rgba(60, 60, 74, 0.8);
         color: white;
+        transform: translateY(-2px);
     }
     
     .menu-item.active {
         background: linear-gradient(135deg, #f0b90b, #fbbf24);
         color: #0A0A0F;
+        box-shadow: 0 4px 15px rgba(240, 185, 11, 0.3);
     }
     
-    /* Main content */
+    /* Contenuto principale */
     .main-content {
         margin-top: 80px;
         padding: 20px 32px;
@@ -109,20 +108,6 @@ st.markdown("""
         justify-content: space-between;
         z-index: 999;
     }
-    
-    /* Metric cards */
-    .metric-card {
-        background: linear-gradient(135deg, #1e1e2e, #1a1a2a);
-        border-radius: 16px;
-        padding: 16px;
-        border: 1px solid #3c3c4a;
-        transition: all 0.3s ease;
-    }
-    
-    .metric-card:hover {
-        transform: translateY(-2px);
-        border-color: #f0b90b;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -135,11 +120,16 @@ if 'radar_select' not in st.session_state:
     st.session_state.radar_select = 'BTC-USD'
 if 'current_page' not in st.session_state:
     st.session_state.current_page = "SCAN"
+if 'last_scan_time' not in st.session_state:
+    st.session_state.last_scan_time = None
+if 'scan_results' not in st.session_state:
+    st.session_state.scan_results = None
 
-# Header con menu
+# Menu items
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 menu_icons = ["🔍", "📊", "📋", "⚙️", "🤖", "📡"]
 
+# Costruisci HTML menu
 menu_html = '<div class="main-header">'
 menu_html += '<div style="display: flex; align-items: center; gap: 16px;">'
 menu_html += '<span style="background: linear-gradient(135deg, #f0b90b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 24px; font-weight: 800;">👁️ GOLDEN EYE</span>'
@@ -169,6 +159,9 @@ function changePage(page) {
 query_params = st.query_params
 if "page" in query_params:
     st.session_state.current_page = query_params["page"]
+if "asset" in query_params:
+    st.session_state.selected_asset = query_params["asset"]
+    st.session_state.radar_select = query_params["asset"]
 
 # Contenuto principale
 st.markdown('<div class="main-content">', unsafe_allow_html=True)
