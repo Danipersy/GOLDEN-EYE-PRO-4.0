@@ -7,7 +7,7 @@ from ui_streamlit.components.header import render_header
 from ui_streamlit.components.card import render_result_card
 
 def show_page():
-    # Header DEVE essere chiamato qui
+    # Header con info mercato
     render_header("RADAR SCAN", "🔍")
     
     # Filtri e scan button
@@ -65,12 +65,16 @@ def show_page():
         ]
         
         for result in filtered_results:
+            # Renderizza la card
             render_result_card(result, f"card_{result['symbol']}")
             
-            if st.button(f"📊 Analizza {result['symbol']}", key=f"btn_{result['symbol']}", use_container_width=True):
-                st.session_state.selected_asset = result['symbol']
-                st.session_state.radar_select = result['symbol']
-                st.session_state.current_page = "DETTAGLIO"
-                st.rerun()
+            # Bottone Analizza SEPARATO dalla card
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                if st.button(f"📊 Analizza {result['symbol']}", key=f"btn_{result['symbol']}", use_container_width=True):
+                    st.session_state.selected_asset = result['symbol']
+                    st.session_state.radar_select = result['symbol']
+                    st.session_state.current_page = "DETTAGLIO"
+                    st.rerun()
     else:
         st.info("👆 Clicca 'AVVIA SCAN COMPLETO' per iniziare")
