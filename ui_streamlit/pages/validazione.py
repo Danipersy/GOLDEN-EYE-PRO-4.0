@@ -1,4 +1,3 @@
-# ui_streamlit/pages/validazione.py
 import streamlit as st
 from strategy.validator import render_validation_panel
 
