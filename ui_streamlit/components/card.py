@@ -1,7 +1,7 @@
 import streamlit as st
 
-def render_result_card(result):
-    """Renderizza una card risultato - VERSIONE FINALE"""
+def render_result_card(result, key=None):  # key è opzionale
+    """Renderizza una card risultato"""
     
     # Estrai dati
     symbol = result.get('symbol', 'N/A')
@@ -32,9 +32,8 @@ def render_result_card(result):
     change_color = "#00ff88" if change > 0 else "#ff3344"
     change_icon = "▲" if change > 0 else "▼"
     
-    # Crea container Streamlit (non HTML)
+    # Crea container Streamlit
     with st.container():
-        # Usa colonne per layout
         col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
         
         with col1:
@@ -50,8 +49,5 @@ def render_result_card(result):
         with col4:
             st.metric("Score", f"{score:.0f}")
         
-        # Volume in una riga separata
         st.caption(f"📊 Volume: {volume:,.0f}")
-        
-        # Linea separatrice
         st.divider()
