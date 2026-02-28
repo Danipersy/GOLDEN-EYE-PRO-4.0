@@ -78,10 +78,8 @@ try:
         show_page()
     
     elif st.session_state.current_page == "STRUMENTI":
-    st.subheader("⚙️ Strumenti")
-    tabs = st.tabs(["📊 Validazione", "🎯 Ottimizzazione", "💰 Money Management", "📊 API"])
-    
-    
+        st.subheader("⚙️ Strumenti")
+        tabs = st.tabs(["📊 Validazione", "🎯 Ottimizzazione", "💰 Money Management", "📊 API"])
         
         with tabs[0]:
             from ui_streamlit.pages.validazione import render
@@ -94,10 +92,11 @@ try:
         with tabs[2]:
             from ui_streamlit.pages.money_management import render
             render()
-    with tabs[3]:  # Quarto tab
-        from ui_streamlit.pages.api_dashboard import render
-        render()
         
+        with tabs[3]:  # Quarto tab - API Dashboard
+            from ui_streamlit.pages.api_dashboard import render
+            render()
+    
     elif st.session_state.current_page == "TRADING":
         st.subheader("🤖 Trading")
         tabs = st.tabs(["📝 Paper Trading", "🧠 AutoTrader"])
