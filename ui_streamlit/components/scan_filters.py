@@ -1,9 +1,7 @@
-# ui_streamlit/components/scan_filters.py
 import streamlit as st
-from typing import Dict
 
 def render_scan_filters():
-    """Filtri a 5 livelli - Grafica migliorata"""
+    """Filtri a 5 livelli con grafica PRO"""
     
     # Inizializzazione
     defaults = {
@@ -20,12 +18,12 @@ def render_scan_filters():
         if key not in st.session_state:
             st.session_state[key] = value
     
-    with st.expander("🔧 Filtri Avanzati", expanded=False):
+    with st.expander("🔧 FILTRI AVANZATI", expanded=False):
         # Livello minimo
-        st.markdown("#### 🎯 Livello minimo")
+        st.markdown("#### 🎯 Livello di Confidenza")
         
         level = st.select_slider(
-            "Confidenza minima:",
+            "Seleziona livello minimo:",
             options=[1, 2, 3, 4, 5],
             value=st.session_state.filter_min_confidence,
             format_func=lambda x: {
@@ -33,7 +31,7 @@ def render_scan_filters():
                 2: "📈 TENDENZA (L2+)",
                 3: "📊 MOMENTUM (L3+)",
                 4: "🟡 MEDI (L4+)",
-                5: "🟢 SOLO FORTI (L5)"
+                5: "🔥 SOLO FORTI (L5)"
             }[x],
             key="confidence_slider"
         )
@@ -41,10 +39,10 @@ def render_scan_filters():
         
         # Score minimo
         st.session_state.filter_min_score = st.slider(
-            "Score minimo",
+            "Score AI minimo",
             0, 100, 
             st.session_state.filter_min_score,
-            help="Filtra per score AI (0-100)"
+            help="Filtra per score dell'AI (0-100)"
         )
         
         st.divider()
@@ -67,14 +65,14 @@ def render_scan_filters():
             st.checkbox("🟡 Trading Medio (L4)", key="filter_show_medium",
                        disabled=level > 4,
                        help="Segnali di trading medi")
-            st.checkbox("🟢 Trading Forte (L5)", key="filter_show_strong",
+            st.checkbox("🔥 Trading Forte (L5)", key="filter_show_strong",
                        disabled=level > 5,
                        help="Segnali di trading forti")
         
         st.divider()
         
         # Preset rapidi
-        st.markdown("#### ⚡ Preset")
+        st.markdown("#### ⚡ Preset Rapidi")
         cols = st.columns(4)
         with cols[0]:
             if st.button("📊 Tutti", use_container_width=True):
