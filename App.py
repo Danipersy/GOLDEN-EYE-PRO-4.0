@@ -147,11 +147,13 @@ if 'last_scan_time' not in st.session_state:
     st.session_state.last_scan_time = None
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
+if 'detail_data' not in st.session_state:
+    st.session_state.detail_data = None
 
 # ============================================
 # HEADER CON MENU
 # ============================================
-st.markdown("""
+st.markdown(f"""
 <div class='premium-header'>
     <div style='display: flex; justify-content: space-between; align-items: center; height: 70px;'>
         <div style='display: flex; align-items: center; gap: 15px;'>
@@ -161,9 +163,9 @@ st.markdown("""
         <div style='color: #94a3b8;'>📊 {len(st.session_state.watchlist)} assets</div>
     </div>
 </div>
-""".format(len(st.session_state.watchlist)), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# Menu con pulsanti Streamlit (distanziati dall'header)
+# Menu con pulsanti Streamlit
 st.markdown("<div style='margin-top: 90px;'></div>", unsafe_allow_html=True)
 
 cols = st.columns(6)
@@ -177,7 +179,7 @@ for i, item in enumerate(menu_items):
             st.rerun()
 
 # ============================================
-# MARKET INFO BAR (sotto il menu)
+# MARKET INFO BAR
 # ============================================
 from ui_streamlit.components.market_bar import render_market_bar
 render_market_bar()
