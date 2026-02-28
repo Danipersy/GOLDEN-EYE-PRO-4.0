@@ -15,16 +15,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# CSS minimale per sfondo
+# CSS minimale per lo sfondo (opzionale)
 st.markdown("""
 <style>
-    .main {
-        background: #0A0A0F;
-        padding: 0 !important;
-    }
-    section[data-testid="stSidebar"] {
-        display: none !important;
-    }
+    .main { background: #0A0A0F; }
+    section[data-testid="stSidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -42,28 +37,28 @@ if 'last_scan_time' not in st.session_state:
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
 
-# Header con logo e watchlist
+# Header con logo e contatore watchlist
 col1, col2, col3 = st.columns([1, 4, 1])
 with col1:
     st.markdown("### 👁️ **GOLDEN EYE**")
 with col3:
     st.markdown(f"### 📊 {len(st.session_state.watchlist)}")
 
-# Menu con pulsanti
 st.markdown("---")
+
+# Menu principale con pulsanti
 cols = st.columns(6)
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
-
 for i, item in enumerate(menu_items):
     with cols[i]:
-        if st.button(item, use_container_width=True, 
-                    type="primary" if st.session_state.current_page == item else "secondary"):
+        if st.button(item, use_container_width=True,
+                     type="primary" if st.session_state.current_page == item else "secondary"):
             st.session_state.current_page = item
             st.rerun()
 
 st.markdown("---")
 
-# Market Info Bar (solo testo)
+# Market Info Bar (usa st.metric per una visualizzazione pulita)
 now = datetime.now()
 weekday = now.weekday()
 hour = now.hour
@@ -74,21 +69,18 @@ if weekday < 5 and 9 <= hour <= 16:
 else:
     stock_status = "🔴 CHIUSO" + (" (Weekend)" if weekday >= 5 else "")
 
-if weekday < 5:
-    forex_status = "🟢 APERTO"
-else:
-    forex_status = "🔴 CHIUSO"
+forex_status = "🟢 APERTO" if weekday < 5 else "🔴 CHIUSO"
 
-col1, col2, col3, col4, col5 = st.columns(5)
-with col1:
+cols = st.columns(5)
+with cols[0]:
     st.metric("🕒 Ora", now.strftime("%H:%M"), now.strftime("%d/%m/%Y"))
-with col2:
+with cols[1]:
     st.metric("🪙 Crypto", crypto_status)
-with col3:
+with cols[2]:
     st.metric("📈 Azioni", stock_status)
-with col4:
+with cols[3]:
     st.metric("💱 Forex", forex_status)
-with col5:
+with cols[4]:
     st.metric("⚡ Versione", "4.0.0")
 
 st.markdown("---")
@@ -98,56 +90,45 @@ try:
     if st.session_state.current_page == "SCAN":
         from ui_streamlit.pages.scan import show_page
         show_page()
-    
     elif st.session_state.current_page == "DETTAGLIO":
         from ui_streamlit.pages.dettaglio import show_page
         show_page(st.session_state.selected_asset)
-    
     elif st.session_state.current_page == "WATCHLIST":
         from ui_streamlit.pages.watchlist import show_page
         show_page()
-    
     elif st.session_state.current_page == "STRUMENTI":
         st.subheader("🛠️ Strumenti Avanzati")
         tabs = st.tabs(["📊 Validazione", "🎯 Ottimizzazione", "💰 Money Management"])
-        
         with tabs[0]:
             from ui_streamlit.pages.validazione import render
             render()
-        
         with tabs[1]:
             from ui_streamlit.pages.ottimizzazione import render
             render()
-        
         with tabs[2]:
             from ui_streamlit.pages.money_management import render
             render()
-    
     elif st.session_state.current_page == "TRADING":
         st.subheader("🤖 Trading")
         tabs = st.tabs(["📝 Paper Trading", "🧠 AutoTrader"])
-        
         with tabs[0]:
             from ui_streamlit.pages.paper_trading import render
             render()
-        
         with tabs[1]:
             from ui_streamlit.pages.auto_trader import render
             render()
-    
     elif st.session_state.current_page == "API":
         from ui_streamlit.pages.api_dashboard import render
         render()
-        
 except Exception as e:
     st.error(f"Errore: {e}")
 
 # Footer
 st.markdown("---")
-col1, col2, col3 = st.columns(3)
-with col1:
+cols = st.columns(3)
+with cols[0]:
     st.caption(f"📅 {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-with col2:
+with cols[1]:
     st.caption("⚡ GOLDEN EYE PRO 4.0")
-with col3:
+with cols[2]:
     st.caption("⚠️ Solo scopo educativo")
