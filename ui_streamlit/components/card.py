@@ -1,101 +1,57 @@
 import streamlit as st
 
-def render_result_card(result, key):
-    """Renderizza una card risultato con grafica professionale - SENZA DIV VISIBILI"""
+def render_result_card(result):
+    """Renderizza una card risultato - VERSIONE FINALE"""
     
-    level = result.get('level', 1)
-    change = result.get('change', 0)
-    score = result.get('score', 0)
+    # Estrai dati
     symbol = result.get('symbol', 'N/A')
     price = result.get('price', 0)
+    change = result.get('change', 0)
     volume = result.get('volume', 0)
+    level = result.get('level', 1)
+    score = result.get('score', 0)
     
-    # Configurazione livelli
+    # Configurazione livello
     if level == 5:
-        level_color = "#00ff88"
-        level_text = "🔥 FORTE"
-        level_bg = "#00ff8815"
+        color = "#00ff88"
+        badge = "🔥 FORTE"
     elif level == 4:
-        level_color = "#f0b90b"
-        level_text = "🟡 MEDIO"
-        level_bg = "#f0b90b15"
+        color = "#f0b90b"
+        badge = "🟡 MEDIO"
     elif level == 3:
-        level_color = "#3b82f6"
-        level_text = "📊 MOMENTUM"
-        level_bg = "#3b82f615"
+        color = "#3b82f6"
+        badge = "📊 MOMENTUM"
     elif level == 2:
-        level_color = "#8b5cf6"
-        level_text = "📈 TENDENZA"
-        level_bg = "#8b5cf615"
+        color = "#8b5cf6"
+        badge = "📈 TENDENZA"
     else:
-        level_color = "#94a3b8"
-        level_text = "⚪ LATERALE"
-        level_bg = "#94a3b815"
+        color = "#94a3b8"
+        badge = "⚪ LATERALE"
     
-    # Determina colore variazione
-    if change > 0:
-        change_color = "#00ff88"
-        change_icon = "▲"
-    else:
-        change_color = "#ff3344"
-        change_icon = "▼"
+    # Colore variazione
+    change_color = "#00ff88" if change > 0 else "#ff3344"
+    change_icon = "▲" if change > 0 else "▼"
     
-    # Costruisci HTML della card - UNA SOLA STRINGA
-    card_html = f'''
-    <div style="
-        background: linear-gradient(135deg, {level_bg}, transparent);
-        border-left: 8px solid {level_color};
-        border-radius: 24px;
-        padding: 24px;
-        margin: 16px 0;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        position: relative;
-        overflow: hidden;
-    ">
-        <!-- Badge livello -->
-        <div style="
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: {level_color};
-            padding: 8px 24px;
-            border-radius: 0 24px 0 24px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        ">
-            <span style="color: #000; font-weight: 700; font-size: 0.9rem;">{level_text}</span>
-        </div>
+    # Crea container Streamlit (non HTML)
+    with st.container():
+        # Usa colonne per layout
+        col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
         
-        <!-- Contenuto principale -->
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-            <div>
-                <span style="font-size: 1.8rem; font-weight: 800; color: #fff;">{symbol}</span>
-                <div style="display: flex; gap: 25px; margin-top: 12px; flex-wrap: wrap;">
-                    <div>
-                        <span style="color: #94a3b8; font-size: 0.8rem;">💰 PREZZO</span>
-                        <div style="font-size: 1.4rem; font-weight: 700; color: #fff;">${price:,.2f}</div>
-                    </div>
-                    <div>
-                        <span style="color: #94a3b8; font-size: 0.8rem;">📊 VOLUME</span>
-                        <div style="font-size: 1.2rem; font-weight: 600; color: #fff;">{volume:,.0f}</div>
-                    </div>
-                    <div>
-                        <span style="color: #94a3b8; font-size: 0.8rem;">🎯 SCORE</span>
-                        <div style="font-size: 1.4rem; font-weight: 700; color: {level_color};">{score:.0f}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="display: flex; gap: 20px; align-items: center;">
-                <div style="text-align: right;">
-                    <span style="color: #94a3b8; font-size: 0.8rem;">VARIAZIONE</span>
-                    <div style="font-size: 2.2rem; font-weight: 800; color: {change_color};">
-                        {change_icon} {abs(change):.2f}%
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    '''
-    
-    # Usa st.markdown per renderizzare l'HTML
-    st.markdown(card_html, unsafe_allow_html=True)
+        with col1:
+            st.markdown(f"**{symbol}**")
+            st.caption(badge)
+        
+        with col2:
+            st.metric("Prezzo", f"${price:,.2f}")
+        
+        with col3:
+            st.metric("Variazione", f"{change:+.2f}%", delta_color="off")
+        
+        with col4:
+            st.metric("Score", f"{score:.0f}")
+        
+        # Volume in una riga separata
+        st.caption(f"📊 Volume: {volume:,.0f}")
+        
+        # Linea separatrice
+        st.divider()
