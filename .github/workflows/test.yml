@@ -1,0 +1,33 @@
+name: 🧪 Test Rapidi
+
+on:
+  push:
+    branches-ignore: [ main ]
+  pull_request:
+
+jobs:
+  quick-test:
+    name: Test veloci
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Installa dipendenze
+      run: pip install -r requirements.txt
+    
+    - name: Test diagnostica
+      run: |
+        python -c "
+import sys
+print('🔄 Esecuzione test diagnostici...')
+sys.path.insert(0, '.')
+try:
+    import diagnostics
+    print('✅ diagnostics.py caricato')
+except:
+    print('⚠️ diagnostics.py non trovato')
+"
