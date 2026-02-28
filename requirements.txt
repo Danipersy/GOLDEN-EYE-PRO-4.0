@@ -2,6 +2,7 @@
 streamlit>=1.38.0
 pandas>=2.2.0
 numpy>=1.26.0
+streamlit-option-menu==0.3.6 
 
 # Dati
 yfinance>=0.2.40
