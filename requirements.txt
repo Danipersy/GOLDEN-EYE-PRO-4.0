@@ -16,4 +16,4 @@ urllib3>=2.2.0
 plotly>=5.24.0
 
 # Technical Analysis
-pandas-ta>=0.3.14b0
+pandas_ta>=0.3.14b0  # <-- NOTA: underscore, non trattino!
