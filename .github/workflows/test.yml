@@ -1,7 +1,45 @@
-name: CI
-on: [push]
+name: CI/CD Golden Eye Pro
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Hello"
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas_ta
+          pip install streamlit pandas numpy yfinance requests plotly
+      
+      - name: Test pandas_ta
+        run: python -c "import pandas_ta; print('✅ pandas_ta OK')"
+      
+      - name: Test streamlit
+        run: python -c "import streamlit; print('✅ streamlit OK')"
+      
+      - name: Create cache directories
+        run: |
+          mkdir -p cache
+          mkdir -p cache/twelvedata
+          mkdir -p cache/yahoo
+      
+      - name: Summary
+        run: |
+          echo "================================"
+          echo "✅✅✅ TEST COMPLETATI ✅✅✅"
+          echo "================================"
+          echo "Python: $(python --version)"
+          echo "Ready for Streamlit Cloud!"
