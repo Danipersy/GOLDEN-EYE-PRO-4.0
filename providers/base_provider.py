@@ -11,12 +11,13 @@ class APIUsageTracker:
     """Traccia l'utilizzo delle API con supporto per tutti i provider"""
     
     def __init__(self):
+        # Inizializza SOLO se non esiste già
         if 'api_usage' not in st.session_state:
             st.session_state.api_usage = {
                 'twelvedata': {
                     'today': 0, 
                     'total': 0, 
-                    'last_reset': date.today(),
+                    'last_reset': date.today().isoformat(),  # Usa stringa ISO per serializzazione
                     'name': 'TwelveData',
                     'icon': '🔵',
                     'color': '#3b82f6'
@@ -24,7 +25,7 @@ class APIUsageTracker:
                 'alphavantage': {
                     'today': 0, 
                     'total': 0, 
-                    'last_reset': date.today(),
+                    'last_reset': date.today().isoformat(),
                     'name': 'Alpha Vantage',
                     'icon': '🟣',
                     'color': '#a855f7'
@@ -32,7 +33,7 @@ class APIUsageTracker:
                 'yahoo': {
                     'today': 0, 
                     'total': 0, 
-                    'last_reset': date.today(),
+                    'last_reset': date.today().isoformat(),
                     'name': 'Yahoo Finance',
                     'icon': '🟢',
                     'color': '#10b981'
@@ -40,7 +41,7 @@ class APIUsageTracker:
                 'marketaux': {
                     'today': 0, 
                     'total': 0, 
-                    'last_reset': date.today(),
+                    'last_reset': date.today().isoformat(),
                     'name': 'Marketaux',
                     'icon': '🟡',
                     'color': '#f59e0b'
@@ -53,9 +54,17 @@ class APIUsageTracker:
     def _check_reset(self, provider):
         """Resetta il contatore giornaliero se necessario"""
         today = date.today()
-        if st.session_state.api_usage[provider]['last_reset'] != today:
+        
+        # Converti la stringa ISO in oggetto date
+        last_reset_str = st.session_state.api_usage[provider]['last_reset']
+        if isinstance(last_reset_str, str):
+            last_reset = date.fromisoformat(last_reset_str)
+        else:
+            last_reset = last_reset_str
+        
+        if last_reset != today:
             st.session_state.api_usage[provider]['today'] = 0
-            st.session_state.api_usage[provider]['last_reset'] = today
+            st.session_state.api_usage[provider]['last_reset'] = today.isoformat()
     
     def increment(self, provider, endpoint="", symbol=""):
         """Incrementa contatore per un provider con log dettagliato"""
@@ -68,7 +77,7 @@ class APIUsageTracker:
         
         # Log della chiamata
         st.session_state.api_calls_log.append({
-            'time': datetime.now(),
+            'time': datetime.now().isoformat(),  # Usa stringa ISO
             'provider': provider,
             'endpoint': endpoint,
             'symbol': symbol,
@@ -106,8 +115,8 @@ class APIUsageTracker:
                 'description': '500 chiamate/giorno, 5/minuto'
             },
             'yahoo': {
-                'daily': 'Illimitato', 
-                'minute': 'Variabile', 
+                'daily': None,  # Illimitato
+                'minute': None, 
                 'cost_per_call': 0,
                 'description': 'Rate limit variabile, usare con cautela'
             },
@@ -134,7 +143,7 @@ class APIUsageTracker:
         for provider, data in self.get_all_usage().items():
             limits = self.get_limits(provider)
             percent = 0
-            if isinstance(limits['daily'], int) and limits['daily'] > 0:
+            if limits['daily'] and limits['daily'] > 0:
                 percent = (data['today'] / limits['daily']) * 100
             
             stats.append({
@@ -174,7 +183,7 @@ def count_api_call(provider, endpoint=""):
     return decorator
 
 # ============================================
-# BASE PROVIDER (esistente)
+# BASE PROVIDER
 # ============================================
 class BaseProvider:
     """
