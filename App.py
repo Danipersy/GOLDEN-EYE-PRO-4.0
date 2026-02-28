@@ -55,12 +55,11 @@ st.markdown("""
 cols = st.columns(6)
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "📊 API"]
 for i, item in enumerate(menu_items):
-    with cols[i]:
-        if st.button(item, use_container_width=True, 
-                    type="primary" if st.session_state.current_page == item else "secondary"):
-            st.session_state.current_page = item
-            st.rerun()
-
+   with cols[i]:
+    if st.button(item, use_container_width=True, 
+                type="primary" if st.session_state.current_page == item else "secondary"):
+        st.session_state.current_page = item
+        st.rerun()
 st.divider()
 
 # Routing pagine
