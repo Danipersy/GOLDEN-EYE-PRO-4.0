@@ -4,7 +4,29 @@ import numpy as np
 from datetime import datetime
 import sys
 from pathlib import Path
+# All'inizio di App.py, dopo gli import
+import os
+import sys
+from pathlib import Path
 
+print("🔍 DEBUG PATH:")
+print(f"Current dir: {Path(__file__).parent.absolute()}")
+print(f"sys.path: {sys.path}")
+
+# Verifica se ui_streamlit esiste
+ui_path = Path(__file__).parent / "ui_streamlit"
+print(f"ui_streamlit exists: {ui_path.exists()}")
+
+if ui_path.exists():
+    print(f"Files in ui_streamlit: {[f.name for f in ui_path.glob('*.py')]}")
+    
+    pages_path = ui_path / "pages.py"
+    print(f"pages.py exists: {pages_path.exists()}")
+    
+    if pages_path.exists():
+        print("Content of pages.py:")
+        with open(pages_path, 'r') as f:
+            print(f.read()[:500])  # Prime 500 caratteri
 # ============================================
 # CONFIGURAZIONE PATH
 # ============================================
