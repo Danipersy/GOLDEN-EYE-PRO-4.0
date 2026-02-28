@@ -1,36 +1,14 @@
-name: Test Golden Eye Pro
+name: Test
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+on: [push]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: '3.11'  # CAMBIA DA 3.10 A 3.11
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      - name: Test import
-        run: |
-          python -c "
-import sys
-print(f'Python version: {sys.version}')
-import pandas_ta
-print(f'✅ pandas_ta {pandas_ta.__version__}')
-from indicators.robust_ta import compute_indicators_15m
-print('✅ robust_ta OK')
-"
+          python-version: '3.11'
+      - run: pip install pandas_ta
+      - run: python -c "import pandas_ta; print('✅ pandas_ta OK')"
