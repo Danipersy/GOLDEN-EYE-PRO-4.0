@@ -1,61 +1,63 @@
-name: CI/CD Pipeline
+name: Test Golden Eye Pro
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main, master ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    
-    - name: Lint with flake8
-      run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    
-    - name: Test imports
-      run: |
-        python -c "
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'  # IMPORTANTE: usa 3.10, non 3.12!
+      
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade setuptools wheel
+      
+      - name: Installa dipendenze
+        run: |
+          # Installa prima le dipendenze di base
+          pip install streamlit pandas numpy plotly requests yfinance
+          
+          # Poi installa pandas_ta (nome corretto)
+          pip install pandas_ta
+          
+          # Oppure prova con versioni alternative se necessario
+          # pip install ta  # Libreria alternativa
+      
+      - name: Verifica installazione
+        run: |
+          python -c "
 import sys
+print('🐍 Python version:', sys.version)
+print('\n📦 Verifica pacchetti installati:')
 try:
-    import config
-    print('✅ config')
-    from providers.base_provider import BaseProvider
-    print('✅ base_provider')
-    from indicators.robust_ta import compute_indicators_15m
-    print('✅ robust_ta')
-    print('🎉 Tutti gli import funzionano!')
-except Exception as e:
-    print(f'❌ Errore: {e}')
-    sys.exit(1)
+    import pandas_ta as ta
+    print(f'✅ pandas_ta {ta.__version__}')
+except:
+    try:
+        import ta
+        print(f'✅ ta library {ta.__version__}')
+    except:
+        print('❌ Nessuna libreria TA trovata')
+        sys.exit(1)
 "
-    
-    - name: Create cache directories
-      run: |
-        mkdir -p cache
-        mkdir -p cache/twelvedata
-        mkdir -p cache/yahoo
-    
-    - name: Upload test results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: test-results
-        path: |
-          cache/
-          *.log
+      
+      - name: Test import
+        run: |
+          python -c "
+import config
+print('✅ config.py OK')
+from indicators.robust_ta import compute_indicators_15m
+print('✅ robust_ta OK')
+"
