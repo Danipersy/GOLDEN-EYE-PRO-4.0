@@ -101,9 +101,9 @@ def show_page():
         for result in filtered:
             render_result_card(result)
     
-    else:
-        # Schermata iniziale elegante
-        st.markdown("""
+      else:
+        # Schermata iniziale elegante - CORRETTA
+        st.markdown(f"""
         <div style="
             text-align: center;
             padding: 80px 20px;
@@ -123,7 +123,7 @@ def show_page():
                 margin-top: 20px;
                 border: 1px solid #f0b90b;
             ">
-                <span style="color: #f0b90b;">📊 Monitorerai {} asset in tempo reale</span>
+                <span style="color: #f0b90b;">📊 Monitorerai {len(st.session_state.watchlist)} asset in tempo reale</span>
             </div>
         </div>
-        """.format(len(st.session_state.watchlist)), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
