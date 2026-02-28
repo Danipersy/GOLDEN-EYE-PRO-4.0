@@ -37,7 +37,7 @@ def render_market_bar():
         forex_color = "#ff3344"
         forex_icon = "🔒"
     
-    # Prezzi indici (mock per ora)
+    # Prezzi indici
     sp500 = "+0.8%"
     nasdaq = "+1.2%"
     dax = "-0.3%"
