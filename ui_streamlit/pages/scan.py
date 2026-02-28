@@ -19,7 +19,7 @@ def show_page():
                 results = []
                 progress_bar = st.progress(0)
                 for i, symbol in enumerate(st.session_state.watchlist):
-                    progress_bar.progress((i + 1) / len(st.session_state.watchlist),
+                    progress_bar.progress((i+1)/len(st.session_state.watchlist),
                                           text=f"Scan {i+1}/{len(st.session_state.watchlist)}: {symbol}")
                     result = scan_symbol(symbol, "15m", "1d")
                     if result and 'error' not in result:
@@ -35,7 +35,7 @@ def show_page():
                         else:
                             level = 1
                         result['level'] = level
-                        result['score'] = min(100, abs(change) * 10)
+                        result['score'] = min(100, abs(change)*10)
                         results.append(result)
                     time.sleep(0.3)
                 progress_bar.empty()
@@ -73,12 +73,5 @@ def show_page():
 
         for result in filtered:
             render_result_card(result)
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                if st.button(f"📊 Analizza {result['symbol']}", key=f"btn_{result['symbol']}", use_container_width=True):
-                    st.session_state.selected_asset = result['symbol']
-                    st.session_state.radar_select = result['symbol']
-                    st.session_state.current_page = "DETTAGLIO"
-                    st.rerun()
     else:
         st.info("👆 Clicca 'AVVIA SCAN' per iniziare")
