@@ -37,16 +37,25 @@ st.set_page_config(
 # FUNZIONE DI IMPORT MIGLIORATA
 # ============================================
 def import_page(module_name):
-    """Importa dinamicamente una pagina cercando in diverse posizioni"""
-    
-    # Lista di possibili percorsi da provare
-    possible_imports = [
-        f"ui_streamlit.pages.{module_name}",  # ui_streamlit.pages.scan
-        f"pages.{module_name}",                # pages.scan
-        module_name,                            # scan
-        f"ui_streamlit.{module_name}"           # ui_streamlit.scan
-    ]
-    
+    """Importa dinamicamente una pagina"""
+    try:
+        # Prova prima con ui_streamlit.pages
+        module_path = f"ui_streamlit.pages.{module_name}"
+        print(f"🔄 Provando a importare: {module_path}")
+        
+        module = __import__(module_path, fromlist=['show_page'])
+        
+        # Cerca show_page
+        if hasattr(module, 'show_page'):
+            print(f"✅ Trovato show_page in {module_path}")
+            return module.show_page
+        else:
+            print(f"⚠️ Modulo {module_path} non ha show_page")
+            return None
+            
+    except ImportError as e:
+        print(f"❌ Errore import {module_name}: {e}")
+        return None
     # Lista di possibili nomi di funzioni
     possible_functions = ['show_page', 'show', 'render', 'main', f'show_{module_name}']
     
