@@ -15,130 +15,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# CSS GLOBALE - FORZATO
-st.markdown("""
-<style>
-    /* Reset completo */
-    .main {
-        background: linear-gradient(135deg, #0a0e17 0%, #0f141f 100%);
-        padding: 0 !important;
-    }
-    
-    .stApp {
-        background: transparent;
-    }
-    
-    /* Nascondi sidebar di Streamlit */
-    section[data-testid="stSidebar"] {
-        display: none !important;
-    }
-    
-    /* HEADER FISSO CON MENU - VISIBILE SEMPRE */
-    .main-header {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        background: #1A1A24 !important;
-        border-bottom: 2px solid #f0b90b !important;
-        padding: 8px 32px !important;
-        z-index: 10000 !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        height: 70px !important;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
-    }
-    
-    /* Menu container */
-    .top-menu {
-        display: flex !important;
-        gap: 5px !important;
-        background: #2C2C3A !important;
-        padding: 5px !important;
-        border-radius: 40px !important;
-        border: 1px solid #f0b90b !important;
-    }
-    
-    /* Pulsanti menu */
-    .menu-btn {
-        padding: 10px 24px !important;
-        border-radius: 30px !important;
-        color: #9E9EB0 !important;
-        font-size: 14px !important;
-        font-weight: 700 !important;
-        cursor: pointer !important;
-        border: none !important;
-        background: transparent !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    .menu-btn:hover {
-        background: #3C3C4A !important;
-        color: white !important;
-    }
-    
-    .menu-btn.active {
-        background: #f0b90b !important;
-        color: #0A0A0F !important;
-    }
-    
-    /* Logo */
-    .logo {
-        background: linear-gradient(135deg, #f0b90b, #fbbf24);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 22px;
-        font-weight: 800;
-    }
-    
-    /* Watchlist count */
-    .watchlist-count {
-        background: #2C2C3A;
-        padding: 8px 16px;
-        border-radius: 30px;
-        color: #f0b90b;
-        font-weight: 600;
-        border: 1px solid #f0b90b;
-    }
-    
-    /* Contenuto principale - distanziato dall'header */
-    .main-content {
-        margin-top: 90px !important;
-        padding: 20px 32px !important;
-        margin-bottom: 70px !important;
-    }
-    
-    /* Footer */
-    .app-footer {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        background: #1A1A24 !important;
-        border-top: 1px solid #f0b90b !important;
-        padding: 12px 32px !important;
-        color: #9E9EB0 !important;
-        font-size: 12px !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        z-index: 10000 !important;
-        height: 50px !important;
-    }
-    
-    /* Nascondi header di default di Streamlit */
-    header[data-testid="stHeader"] {
-        display: none !important;
-    }
-    
-    /* Fix per i div che vedi */
-    div[style*="border-left: 8px solid"] {
-        display: block !important;
-        margin: 16px 0 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 # Inizializzazione session state
 if 'watchlist' not in st.session_state:
     st.session_state.watchlist = ['BTC-USD', 'ETH-USD', 'BNB-USD', 'SOL-USD', 'ADA-USD']
@@ -153,58 +29,124 @@ if 'last_scan_time' not in st.session_state:
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
 
-# Menu items
-menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
-menu_icons = ["🔍", "📊", "📋", "⚙️", "🤖", "📡"]
-
-# Costruisci header HTML
-header_html = '<div class="main-header">'
-
-# Logo
-header_html += '<div style="display: flex; align-items: center; gap: 10px;">'
-header_html += '<span class="logo">👁️ GOLDEN EYE</span>'
-header_html += '<span style="background: #2C2C3A; padding: 4px 8px; border-radius: 20px; font-size: 10px; color: #f0b90b;">v4.0.0</span>'
-header_html += '</div>'
-
-# Menu
-header_html += '<div class="top-menu">'
-for i, (item, icon) in enumerate(zip(menu_items, menu_icons)):
-    active_class = "active" if st.session_state.current_page == item else ""
-    header_html += f'<button class="menu-btn {active_class}" onclick="changePage(\'{item}\')">{icon} {item}</button>'
-header_html += '</div>'
-
-# Watchlist count
-header_html += f'<div class="watchlist-count">📊 {len(st.session_state.watchlist)} assets</div>'
-header_html += '</div>'
-
-# JavaScript per navigazione
+# CSS
 st.markdown("""
-<script>
-function changePage(page) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', page);
-    window.location.href = url.toString();
-}
+<style>
+    /* Reset */
+    .main { background: #0A0A0F; padding: 0 !important; }
+    .stApp { background: #0A0A0F; }
+    section[data-testid="stSidebar"] { display: none !important; }
+    
+    /* Header */
+    .main-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: #1A1A24;
+        border-bottom: 2px solid #f0b90b;
+        padding: 8px 32px;
+        z-index: 9999;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 70px;
+    }
+    
+    /* Menu */
+    .top-menu {
+        display: flex;
+        gap: 5px;
+        background: #2C2C3A;
+        padding: 5px;
+        border-radius: 40px;
+    }
+    
+    .menu-btn {
+        padding: 10px 24px;
+        border-radius: 30px;
+        color: #9E9EB0;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .menu-btn:hover {
+        background: #3C3C4A;
+        color: white;
+    }
+    
+    .menu-btn.active {
+        background: #f0b90b;
+        color: #0A0A0F;
+    }
+    
+    /* Logo */
+    .logo {
+        background: linear-gradient(135deg, #f0b90b, #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 22px;
+        font-weight: 800;
+    }
+    
+    /* Contenuto */
+    .main-content {
+        margin-top: 90px;
+        padding: 20px 32px;
+        margin-bottom: 70px;
+    }
+    
+    /* Footer */
+    .app-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #1A1A24;
+        border-top: 1px solid #f0b90b;
+        padding: 12px 32px;
+        color: #9E9EB0;
+        font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+        z-index: 9999;
+        height: 50px;
+    }
+    
+    /* Card risultati */
+    .result-card {
+        background: linear-gradient(135deg, #1e1e2e, #1a1a2a);
+        border-left: 8px solid;
+        border-radius: 24px;
+        padding: 24px;
+        margin: 16px 0;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+</style>
+""", unsafe_allow_html=True)
 
-// Assicura che il menu sia visibile
-window.addEventListener('load', function() {
-    console.log('Menu loaded');
-});
-</script>
-""" + header_html, unsafe_allow_html=True)
+# ============================================
+# MENU CON PULSANTI STREAMLIT (NON HTML)
+# ============================================
+cols = st.columns(6)
+menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 
-# Gestione parametri URL
-query_params = st.query_params
-if "page" in query_params:
-    st.session_state.current_page = query_params["page"]
-if "asset" in query_params:
-    st.session_state.selected_asset = query_params["asset"]
-    st.session_state.radar_select = query_params["asset"]
+for i, item in enumerate(menu_items):
+    with cols[i]:
+        if st.button(item, use_container_width=True, 
+                    type="primary" if st.session_state.current_page == item else "secondary"):
+            st.session_state.current_page = item
+            st.rerun()
 
-# Contenuto principale
-st.markdown('<div class="main-content">', unsafe_allow_html=True)
+st.markdown("---")
 
-# Routing pagine con try/except
+# ============================================
+# ROUTING PAGINE
+# ============================================
 try:
     if st.session_state.current_page == "SCAN":
         from ui_streamlit.pages.scan import show_page
@@ -251,11 +193,7 @@ try:
         render()
         
 except Exception as e:
-    st.error(f"Errore nel caricamento della pagina: {e}")
-    if st.session_state.get('debug_mode', False):
-        st.exception(e)
-
-st.markdown('</div>', unsafe_allow_html=True)
+    st.error(f"Errore: {e}")
 
 # Footer
 st.markdown(f"""
