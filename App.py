@@ -29,7 +29,7 @@ if 'last_scan_time' not in st.session_state:
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
 
-# Header (usa classi definite in styles.py)
+# Header
 now = datetime.now()
 weekday = now.weekday()
 hour = now.hour
@@ -56,7 +56,7 @@ header_html = f"""
 """
 st.markdown(header_html, unsafe_allow_html=True)
 
-# Menu (bottoni nativi Streamlit con contenitore personalizzato)
+# Menu
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 
 st.markdown('<div class="menu-container">', unsafe_allow_html=True)
@@ -72,7 +72,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# Contenuto principale
+# Contenuto principale (invariato)
 with st.container():
     try:
         if st.session_state.current_page == "SCAN":
