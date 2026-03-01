@@ -1,5 +1,6 @@
 # providers/base_provider.py
 import streamlit as st
+import json
 import os
 import pickle
 import hashlib
@@ -56,7 +57,7 @@ class APIUsageTracker:
     
     def _check_reset(self, provider):
         """Resetta il contatore giornaliero se necessario"""
-        self._ensure_initialized()  # Sicurezza extra
+        self._ensure_initialized()
         today = date.today()
         
         last_reset_str = st.session_state.api_usage[provider]['last_reset']
