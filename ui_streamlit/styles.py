@@ -1,119 +1,182 @@
 import streamlit as st
-from datetime import datetime
-import sys
-from pathlib import Path
 
-current_dir = Path(__file__).parent.absolute()
-sys.path.insert(0, str(current_dir))
+def apply_styles():
+    st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="collapsed")
+    * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
 
-# Applica gli stili centralizzati
-from ui_streamlit.styles import apply_styles
-apply_styles()
+    .stApp {
+        background: #0B0E14;
+    }
 
-# Inizializzazione session state
-from storage.watchlist_store import load_watchlist, save_watchlist
-from config import DEFAULT_WATCHLIST
+    /* Nascondi elementi di default di Streamlit */
+    section[data-testid="stSidebar"], header[data-testid="stHeader"] {
+        display: none !important;
+    }
 
-if 'watchlist' not in st.session_state:
-    st.session_state.watchlist = load_watchlist()
-if 'selected_asset' not in st.session_state:
-    st.session_state.selected_asset = st.session_state.watchlist[0] if st.session_state.watchlist else "BTC/USD"
-if 'radar_select' not in st.session_state:
-    st.session_state.radar_select = st.session_state.selected_asset
-if 'current_page' not in st.session_state:
-    st.session_state.current_page = "SCAN"
-if 'last_scan_time' not in st.session_state:
-    st.session_state.last_scan_time = None
-if 'scan_results' not in st.session_state:
-    st.session_state.scan_results = None
+    /* Header elegante (glassmorphism) */
+    .trader-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(20, 24, 31, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 60px;
+        padding: 0.6rem 2rem;
+        margin: 1rem 2rem 1.5rem 2rem;
+        border: 1px solid rgba(240, 185, 11, 0.25);
+        box-shadow: 0 15px 30px -15px rgba(0,0,0,0.7);
+    }
 
-# Header (usa classi definite in styles.py)
-now = datetime.now()
-weekday = now.weekday()
-hour = now.hour
+    .logo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #E5E7EB;
+        letter-spacing: 0.5px;
+    }
+    .logo span {
+        color: #F0B90B;
+        font-weight: 800;
+    }
 
-if weekday < 5 and 9 <= hour <= 16:
-    stock_status = ("Aperto", "green")
-else:
-    stock_status = ("Chiuso" + (" (Weekend)" if weekday >= 5 else ""), "red")
+    .market-info {
+        display: flex;
+        gap: 2rem;
+        color: #9CA3AF;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
 
-forex_status = ("Aperto" if weekday < 5 else "Chiuso", "green" if weekday < 5 else "red")
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-header_html = f"""
-<div class="trader-header">
-    <div class="logo">GOLDEN <span>EYE</span></div>
-    <div class="market-info">
-        <div class="info-item"><span>🕒</span><span class="value">{now.strftime("%H:%M")}</span><span>{now.strftime("%d/%m")}</span></div>
-        <div class="info-item"><span>🪙</span><span class="value green">24/7</span></div>
-        <div class="info-item"><span>📈</span><span class="value {stock_status[1]}">{stock_status[0]}</span></div>
-        <div class="info-item"><span>💱</span><span class="value {forex_status[1]}">{forex_status[0]}</span></div>
-        <div class="info-item"><span>⚡</span><span class="value">4.0.0</span></div>
-        <div class="info-item" style="border-left:1px solid #2F3540; padding-left:1rem;"><span>📊</span><span class="value">{len(st.session_state.watchlist)}</span></div>
-    </div>
-</div>
-"""
-st.markdown(header_html, unsafe_allow_html=True)
+    .info-item .value {
+        font-weight: 700;
+        color: #F0B90B;
+    }
+    .info-item .value.green { color: #10B981; }
+    .info-item .value.red { color: #EF4444; }
 
-# Menu (bottoni nativi Streamlit)
-menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
-cols = st.columns(len(menu_items))
-for i, item in enumerate(menu_items):
-    with cols[i]:
-        if st.button(item, use_container_width=True,
-                     type="primary" if st.session_state.current_page == item else "secondary",
-                     key=f"menu_{item}"):
-            st.session_state.current_page = item
-            st.rerun()
+    /* Menu con bottoni nativi personalizzati - stile elegante */
+    div[data-testid="column"] button {
+        background: rgba(30, 36, 44, 0.6) !important;
+        backdrop-filter: blur(4px) !important;
+        border: 1px solid rgba(240, 185, 11, 0.3) !important;
+        border-radius: 40px !important;
+        color: #E5E7EB !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        padding: 0.7rem 0 !important;
+        transition: all 0.25s ease !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 
-st.markdown("<hr>", unsafe_allow_html=True)
+    div[data-testid="column"] button:hover {
+        background: rgba(45, 55, 68, 0.8) !important;
+        border-color: #F0B90B !important;
+        color: white !important;
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 12px 24px -8px rgba(240, 185, 11, 0.4) !important;
+    }
 
-# Contenuto principale (invariato)
-with st.container():
-    try:
-        if st.session_state.current_page == "SCAN":
-            from ui_streamlit.pages.scan import show_page
-            show_page()
-        elif st.session_state.current_page == "DETTAGLIO":
-            from ui_streamlit.pages.dettaglio import show_page
-            show_page(st.session_state.selected_asset)
-        elif st.session_state.current_page == "WATCHLIST":
-            from ui_streamlit.pages.watchlist import show_page
-            show_page()
-        elif st.session_state.current_page == "STRUMENTI":
-            st.subheader("🛠️ Strumenti Avanzati")
-            tabs = st.tabs(["📊 Validazione", "🎯 Ottimizzazione", "💰 Money Management"])
-            with tabs[0]:
-                from ui_streamlit.pages.validazione import render
-                render()
-            with tabs[1]:
-                from ui_streamlit.pages.ottimizzazione import render
-                render()
-            with tabs[2]:
-                from ui_streamlit.pages.money_management import render
-                render()
-        elif st.session_state.current_page == "TRADING":
-            st.subheader("🤖 Trading")
-            tabs = st.tabs(["📝 Paper Trading", "🧠 AutoTrader"])
-            with tabs[0]:
-                from ui_streamlit.pages.paper_trading import render
-                render()
-            with tabs[1]:
-                from ui_streamlit.pages.auto_trader import render
-                render()
-        elif st.session_state.current_page == "API":
-            from ui_streamlit.pages.api_dashboard import render
-            render()
-    except Exception as e:
-        st.error(f"Errore: {e}")
+    div[data-testid="column"] button[kind="primary"] {
+        background: linear-gradient(145deg, #F0B90B, #D4A009) !important;
+        border: none !important;
+        color: #0B0E14 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 6px 14px rgba(240, 185, 11, 0.3) !important;
+    }
 
-# Footer
-footer_html = f"""
-<div class="trader-footer">
-    <span>📅 {now.strftime("%d/%m/%Y %H:%M:%S")}</span>
-    <span>⚡ GOLDEN EYE PRO 4.0 • Trading Intelligence Platform</span>
-    <span>⚠️ Solo scopo educativo</span>
-</div>
-"""
-st.markdown(footer_html, unsafe_allow_html=True)
+    div[data-testid="column"] button[kind="primary"]:hover {
+        background: linear-gradient(145deg, #FBBF24, #F0B90B) !important;
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 15px 30px -8px #F0B90B !important;
+    }
+
+    /* Divider personalizzato */
+    hr {
+        border-color: rgba(240, 185, 11, 0.2) !important;
+        margin: 1.5rem 2rem !important;
+    }
+
+    /* Footer */
+    .trader-footer {
+        background: rgba(20, 24, 31, 0.8);
+        backdrop-filter: blur(8px);
+        border-radius: 40px;
+        padding: 0.6rem 2rem;
+        margin: 2rem 2rem 1rem 2rem;
+        border: 1px solid rgba(240, 185, 11, 0.25);
+        color: #9CA3AF;
+        font-size: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* Metriche personalizzate */
+    div[data-testid="stMetric"] {
+        background: #14181F;
+        border-radius: 24px;
+        padding: 1rem;
+        border: 1px solid #2A2F38;
+        transition: all 0.2s;
+    }
+    div[data-testid="stMetric"]:hover {
+        border-color: #F0B90B;
+        box-shadow: 0 0 0 1px #F0B90B20;
+    }
+    div[data-testid="stMetric"] label {
+        color: #9CA3AF !important;
+        font-weight: 500 !important;
+    }
+    div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+        color: #F0B90B !important;
+        font-weight: 700 !important;
+    }
+
+    /* Dataframe */
+    .dataframe {
+        background: #14181F !important;
+        border-radius: 16px !important;
+        border: 1px solid #2A2F38 !important;
+    }
+    .dataframe th {
+        background: #1E242C !important;
+        color: #F0B90B !important;
+        font-weight: 600 !important;
+    }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.5rem;
+        background: #14181F;
+        padding: 0.5rem;
+        border-radius: 40px;
+        border: 1px solid #2A2F38;
+    }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 30px;
+        padding: 0.5rem 1.5rem;
+        color: #9CA3AF;
+        font-weight: 600;
+    }
+    .stTabs [aria-selected="true"] {
+        background: #F0B90B !important;
+        color: #0B0E14 !important;
+    }
+
+    /* Badge personalizzati (opzionali per card) */
+    .badge-l5 { background: #10B981; color: black; }
+    .badge-l4 { background: #F0B90B; color: black; }
+    .badge-l3 { background: #3B82F6; color: white; }
+    .badge-l2 { background: #8B5CF6; color: white; }
+    .badge-l1 { background: #6B7280; color: white; }
+</style>
+    """, unsafe_allow_html=True)
