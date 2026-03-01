@@ -26,13 +26,13 @@ from ai.asset_analyzer import AssetAIAnalyzer
 from strategy.backtest import backtest_engine
 from strategy.money_manager import MoneyManager
 from strategy.auto_trader import AutoTrader
-# ✅ CORRETTO: import da validation_panel
 from ui_streamlit.components.validation_panel import validate_data_quality
 
 # Utility
 from utils.helpers import get_market_status, normalize_ohlcv_df
 from storage.watchlist_store import load_watchlist, save_watchlist
 from ui_streamlit.components.card import render_result_card
+from ui_streamlit.components.scan_filters import render_scan_filters
 
 def render():
     st.markdown("## 🧪 Diagnostic Center")
@@ -52,11 +52,12 @@ def render():
     st.divider()
 
     # Tabs principali
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📡 Provider", 
         "📊 Indicatori & Filtri", 
         "🤖 AI & Strategia", 
         "⚙️ Sistema",
+        "💰 Money Manager",
         "🔧 Altri test"
     ])
 
@@ -161,7 +162,6 @@ def render():
 
         st.divider()
         st.subheader("Test filtri scan (livelli L1-L5)")
-        # Simula variazioni percentuali e verifica livello
         test_changes = [-3.5, -1.5, -0.8, -0.2, 0.1, 0.6, 1.2, 2.5]
         results = []
         for change in test_changes:
@@ -178,6 +178,12 @@ def render():
             results.append({"Variazione %": change, "Livello": f"L{level}"})
         df_levels = pd.DataFrame(results)
         st.dataframe(df_levels, use_container_width=True)
+
+        st.divider()
+        st.subheader("Test filtri UI")
+        if st.checkbox("Mostra filtri avanzati"):
+            filters = render_scan_filters()
+            st.json(filters)
 
     # ==================== TAB 3: AI & STRATEGIA ====================
     with tab3:
@@ -204,53 +210,33 @@ def render():
                     st.write(f"- {s}")
 
         st.divider()
-        st.subheader("Backtest rapido")
-        if st.button("📊 Esegui backtest sintetico", use_container_width=True):
-            dates_bt = pd.date_range(end=datetime.now(), periods=1000, freq='15min')
-            df_bt = pd.DataFrame({
-                'datetime': dates_bt,
-                'open': np.random.randn(1000).cumsum() + 50000,
-                'high': np.random.randn(1000).cumsum() + 50100,
-                'low': np.random.randn(1000).cumsum() + 49900,
-                'close': np.random.randn(1000).cumsum() + 50000,
-                'volume': np.random.randint(100, 1000, 1000)
-            })
-            with st.spinner("Esecuzione backtest..."):
-                result = backtest_engine(df_bt, use_mtf=False)
-            if result and result['trades'] is not None and not result['trades'].empty:
-                stats = result['stats']
-                st.success(f"Trades: {stats['n']}, Win Rate: {stats['winrate']:.1f}%")
-            else:
-                st.warning("Nessun trade generato (normale con dati casuali)")
-
-        st.divider()
-        st.subheader("Money Manager")
-        mm = MoneyManager(initial_capital=10000)
-        col_m1, col_m2, col_m3 = st.columns(3)
-        with col_m1:
-            if st.button("➕ +500", use_container_width=True):
-                mm.update_after_trade(500)
-                st.rerun()
-        with col_m2:
-            if st.button("➖ -300", use_container_width=True):
-                mm.update_after_trade(-300)
-                st.rerun()
-        with col_m3:
-            if st.button("🔄 Reset", use_container_width=True):
-                st.session_state.money_manager = MoneyManager(10000)
-                st.rerun()
-        metrics = mm.get_metrics()
-        st.metric("Capitale", f"${metrics['current_capital']:.2f}", delta=f"{metrics['total_pnl_pct']:.2f}%")
-        st.metric("Drawdown", f"{metrics['current_drawdown']:.2f}%", delta=f"Max: {metrics['max_drawdown']:.2f}%")
+        st.subheader("Backtest con dati reali (BTC)")
+        if st.button("📊 Esegui backtest su BTC (ultimi 30 giorni)", use_container_width=True):
+            with st.spinner("Scaricamento dati e backtest..."):
+                df_bt = fetch_yf_ohlcv("BTC-USD", interval="15m", period="30d")
+                if df_bt is not None and len(df_bt) > 200:
+                    result = backtest_engine(df_bt, use_mtf=False)
+                    if result and result['trades'] is not None and not result['trades'].empty:
+                        stats = result['stats']
+                        st.success(f"Trades: {stats['n']}, Win Rate: {stats['winrate']:.1f}%")
+                        st.dataframe(result['trades'].tail(10), use_container_width=True)
+                    else:
+                        st.warning("Nessun trade generato nel periodo")
+                else:
+                    st.error("Dati insufficienti")
 
         st.divider()
         st.subheader("AutoTrader (simulazione)")
-        if st.button("▶️ Simula 5 trade", use_container_width=True):
-            # Simula alcuni trade con risultati casuali
+        if st.button("▶️ Avvia simulazione AutoTrader (5 trade)", use_container_width=True):
+            # Usa l'istanza in session_state se esiste
+            if 'test_auto_trader' not in st.session_state:
+                st.session_state.test_auto_trader = AutoTrader()
+            bot = st.session_state.test_auto_trader
+            # Simula 5 trade (non eseguiamo scan reali, solo finti)
             trades = []
             capital = 10000
             for i in range(5):
-                pnl_pct = np.random.normal(0.5, 2)  # media 0.5%, dev std 2%
+                pnl_pct = np.random.normal(0.5, 2)
                 pnl = capital * pnl_pct / 100
                 capital += pnl
                 trades.append({
@@ -320,11 +306,51 @@ def render():
                 else:
                     st.error("Dati non disponibili")
 
-    # ==================== TAB 5: ALTRI TEST ====================
+    # ==================== TAB 5: MONEY MANAGER (con persistenza) ====================
     with tab5:
+        st.subheader("Money Manager interattivo")
+        st.caption("I pulsanti aggiornano il capitale in tempo reale (salvato in sessione).")
+
+        # Inizializza il money manager in session state se non esiste
+        if 'test_money_manager' not in st.session_state:
+            st.session_state.test_money_manager = MoneyManager(initial_capital=10000)
+
+        mm = st.session_state.test_money_manager
+
+        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+        with col_m1:
+            if st.button("➕ +500", use_container_width=True):
+                mm.update_after_trade(500)
+                st.rerun()
+        with col_m2:
+            if st.button("➖ -300", use_container_width=True):
+                mm.update_after_trade(-300)
+                st.rerun()
+        with col_m3:
+            if st.button("🔄 Reset", use_container_width=True):
+                st.session_state.test_money_manager = MoneyManager(10000)
+                st.rerun()
+        with col_m4:
+            if st.button("📊 Mostra metriche", use_container_width=True):
+                metrics = mm.get_metrics()
+                st.json(metrics)
+
+        metrics = mm.get_metrics()
+        col_show1, col_show2, col_show3 = st.columns(3)
+        with col_show1:
+            st.metric("Capitale", f"${metrics['current_capital']:.2f}", delta=f"{metrics['total_pnl_pct']:.2f}%")
+        with col_show2:
+            st.metric("Drawdown attuale", f"{metrics['current_drawdown']:.2f}%")
+        with col_show3:
+            st.metric("Max Drawdown", f"{metrics['max_drawdown']:.2f}%")
+
+        if metrics['trades'] > 0:
+            st.metric("Sharpe Ratio", f"{metrics['sharpe']:.2f}")
+
+    # ==================== TAB 6: ALTRI TEST ====================
+    with tab6:
         st.subheader("Test componenti UI")
         if st.button("🃏 Mostra card esempio", use_container_width=True):
-            # Crea un risultato finto
             fake_result = {
                 'symbol': 'BTC-USD',
                 'price': 51234.56,
@@ -361,3 +387,20 @@ def render():
                 st.success(f"Yahoo: {elapsed:.2f}s")
             else:
                 st.error(f"Fallito in {elapsed:.2f}s")
+
+        st.divider()
+        st.subheader("Test ottimizzazione (solo UI)")
+        if st.button("🔄 Mostra pannello ottimizzazione finto"):
+            st.info("Qui potrebbe apparire il pannello di ottimizzazione. (UI test)")
+            # Potremmo richiamare render_optimizer_panel ma richiede un asset selezionato
+            # Per semplicità, mostriamo solo un messaggio.
+
+        st.divider()
+        st.subheader("Test helpers")
+        if st.button("🛠️ Test get_market_status"):
+            status = get_market_status("BTC-USD")
+            st.json(status)
+        if st.button("🛠️ Test convert_symbol_to_yfinance (BTC/USD)"):
+            from utils.helpers import convert_symbol_to_yfinance
+            conv = convert_symbol_to_yfinance("BTC/USD")
+            st.info(f"BTC/USD → {conv}")
