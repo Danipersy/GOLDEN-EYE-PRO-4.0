@@ -62,8 +62,8 @@ def apply_styles():
     .info-item .value.green { color: #10B981; }
     .info-item .value.red { color: #EF4444; }
 
-    /* Menu container - selettori specifici per i bottoni nelle colonne */
-    .menu-container div[data-testid="column"] button {
+    /* Menu container - selettori basati su data-testid */
+    .menu-container div[data-testid="column"] button[data-testid="stBaseButton-secondary"] {
         background: rgba(30, 36, 44, 0.6) !important;
         backdrop-filter: blur(4px) !important;
         border: 1px solid rgba(240, 185, 11, 0.3) !important;
@@ -79,7 +79,7 @@ def apply_styles():
         width: 100%;
     }
 
-    .menu-container div[data-testid="column"] button:hover {
+    .menu-container div[data-testid="column"] button[data-testid="stBaseButton-secondary"]:hover {
         background: rgba(45, 55, 68, 0.8) !important;
         border-color: #F0B90B !important;
         color: white !important;
@@ -87,15 +87,21 @@ def apply_styles():
         box-shadow: 0 12px 24px -8px rgba(240, 185, 11, 0.4) !important;
     }
 
-    .menu-container div[data-testid="column"] button[kind="primary"] {
+    .menu-container div[data-testid="column"] button[data-testid="stBaseButton-primary"] {
         background: linear-gradient(145deg, #F0B90B, #D4A009) !important;
         border: none !important;
         color: #0B0E14 !important;
         font-weight: 700 !important;
         box-shadow: 0 6px 14px rgba(240, 185, 11, 0.3) !important;
+        border-radius: 40px !important;
+        padding: 0.7rem 0 !important;
+        font-size: 0.95rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        width: 100%;
     }
 
-    .menu-container div[data-testid="column"] button[kind="primary"]:hover {
+    .menu-container div[data-testid="column"] button[data-testid="stBaseButton-primary"]:hover {
         background: linear-gradient(145deg, #FBBF24, #F0B90B) !important;
         transform: translateY(-3px) scale(1.02);
         box-shadow: 0 15px 30px -8px #F0B90B !important;
