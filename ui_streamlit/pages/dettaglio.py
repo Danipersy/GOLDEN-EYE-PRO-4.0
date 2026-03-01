@@ -139,12 +139,13 @@ def show_page(symbol=None):
                 rr = reward / risk if risk > 0 else 0
                 st.metric("📊 Risk/Reward", f"1:{rr:.2f}", border=True)
             
-            # Salva i dati in session_state per le altre pagine
+            # Salva i dati in session_state per le altre pagine (incluso il simbolo)
             st.session_state.detail_data = {
+                'symbol': symbol,
                 'p': current_price,
                 'atr': signal['atr'],
                 'sig': signal['display'],
-                'score': signal['score'] if 'score' in signal else 50,
+                'score': signal.get('score', 50),
                 'rsi': signal['rsi'],
                 'adx': signal['adx']
             }
