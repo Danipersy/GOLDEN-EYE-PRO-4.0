@@ -1,6 +1,5 @@
 # providers/base_provider.py
 import streamlit as st
-import json
 import os
 import pickle
 import hashlib
@@ -11,11 +10,9 @@ class APIUsageTracker:
     """Traccia l'utilizzo delle API con supporto per tutti i provider"""
     
     def __init__(self):
-        # L'inizializzazione effettiva avviene al primo accesso
         self._ensure_initialized()
     
     def _ensure_initialized(self):
-        """Inizializza le strutture dati in session_state se non esistono"""
         if 'api_usage' not in st.session_state:
             st.session_state.api_usage = {
                 'twelvedata': {
@@ -49,6 +46,15 @@ class APIUsageTracker:
                     'name': 'Marketaux',
                     'icon': '🟡',
                     'color': '#f59e0b'
+                },
+                # NUOVO PROVIDER POLYGON
+                'polygon': {
+                    'today': 0, 
+                    'total': 0, 
+                    'last_reset': date.today().isoformat(),
+                    'name': 'Polygon.io',
+                    'icon': '🔶',
+                    'color': '#f97316'
                 }
             }
         
@@ -56,31 +62,24 @@ class APIUsageTracker:
             st.session_state.api_calls_log = []
     
     def _check_reset(self, provider):
-        """Resetta il contatore giornaliero se necessario"""
         self._ensure_initialized()
         today = date.today()
-        
         last_reset_str = st.session_state.api_usage[provider]['last_reset']
         if isinstance(last_reset_str, str):
             last_reset = date.fromisoformat(last_reset_str)
         else:
             last_reset = last_reset_str
-        
         if last_reset != today:
             st.session_state.api_usage[provider]['today'] = 0
             st.session_state.api_usage[provider]['last_reset'] = today.isoformat()
     
     def increment(self, provider, endpoint="", symbol=""):
-        """Incrementa contatore per un provider con log dettagliato"""
         self._ensure_initialized()
-        
         if provider not in st.session_state.api_usage:
             return
-        
         self._check_reset(provider)
         st.session_state.api_usage[provider]['today'] += 1
         st.session_state.api_usage[provider]['total'] += 1
-        
         st.session_state.api_calls_log.append({
             'time': datetime.now().isoformat(),
             'provider': provider,
@@ -88,25 +87,21 @@ class APIUsageTracker:
             'symbol': symbol,
             'cumulative_today': st.session_state.api_usage[provider]['today']
         })
-        
         if len(st.session_state.api_calls_log) > 100:
             st.session_state.api_calls_log = st.session_state.api_calls_log[-100:]
     
     def get_usage(self, provider):
-        """Ottieni utilizzo per provider"""
         self._ensure_initialized()
         self._check_reset(provider)
         return st.session_state.api_usage[provider]
     
     def get_all_usage(self):
-        """Ottieni tutti gli utilizzi"""
         self._ensure_initialized()
         for provider in st.session_state.api_usage:
             self._check_reset(provider)
         return st.session_state.api_usage
     
     def get_limits(self, provider):
-        """Restituisce i limiti per provider"""
         limits = {
             'twelvedata': {
                 'daily': 800, 
@@ -131,12 +126,17 @@ class APIUsageTracker:
                 'minute': 10, 
                 'cost_per_call': 1,
                 'description': '100 chiamate/giorno'
+            },
+            'polygon': {
+                'daily': 5,  # Limite gratuito (5 chiamate/minuto, ma qui contiamo giornaliere? Mettiamo un valore indicativo)
+                'minute': 5,
+                'cost_per_call': 1,
+                'description': '5 chiamate/minuto (piano gratuito)'
             }
         }
         return limits.get(provider, {'daily': '?', 'minute': '?', 'cost_per_call': 0})
     
     def get_today_total(self):
-        """Totale chiamate oggi"""
         self._ensure_initialized()
         total = 0
         for provider in st.session_state.api_usage:
@@ -145,7 +145,6 @@ class APIUsageTracker:
         return total
     
     def get_provider_stats(self):
-        """Statistiche per provider"""
         self._ensure_initialized()
         stats = []
         for provider, data in self.get_all_usage().items():
@@ -153,7 +152,6 @@ class APIUsageTracker:
             percent = 0
             if limits['daily'] and limits['daily'] > 0:
                 percent = (data['today'] / limits['daily']) * 100
-            
             stats.append({
                 'provider': provider,
                 'name': data.get('name', provider.title()),
@@ -171,9 +169,7 @@ class APIUsageTracker:
 tracker = APIUsageTracker()
 
 def count_api_call(provider, endpoint=""):
-    """Decorator per contare le chiamate API"""
     from functools import wraps
-    
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -182,7 +178,6 @@ def count_api_call(provider, endpoint=""):
                 symbol = str(args[0])
             elif 'symbol' in kwargs:
                 symbol = kwargs['symbol']
-            
             tracker.increment(provider, endpoint, symbol)
             return func(*args, **kwargs)
         return wrapper
@@ -192,33 +187,24 @@ def count_api_call(provider, endpoint=""):
 # BASE PROVIDER
 # ============================================
 class BaseProvider:
-    """
-    Classe base per tutti i provider con caching su disco
-    """
-    
     def __init__(self, name: str, ttl: int = 300):
         self.name = name
         self.ttl = ttl
         self.cache_dir = os.path.join("cache", name)
-        if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir, exist_ok=True)
+        os.makedirs(self.cache_dir, exist_ok=True)
     
     def get_cache_key(self, *args, **kwargs) -> str:
-        """Genera chiave cache univoca"""
         key_str = f"{self.name}_{str(args)}_{str(kwargs)}"
         return hashlib.md5(key_str.encode()).hexdigest()
     
     def get_from_cache(self, key: str):
-        """Legge dal cache su disco"""
         cache_file = os.path.join(self.cache_dir, f"{key}.pkl")
         if not os.path.exists(cache_file):
             return None
-        
         mod_time = datetime.fromtimestamp(os.path.getmtime(cache_file))
         if datetime.now() - mod_time > timedelta(seconds=self.ttl):
             os.remove(cache_file)
             return None
-        
         try:
             with open(cache_file, 'rb') as f:
                 return pickle.load(f)
@@ -227,7 +213,6 @@ class BaseProvider:
             return None
     
     def save_to_cache(self, key: str, data):
-        """Salva su cache su disco"""
         cache_file = os.path.join(self.cache_dir, f"{key}.pkl")
         try:
             with open(cache_file, 'wb') as f:
@@ -236,20 +221,15 @@ class BaseProvider:
             error_handler.logger.error(f"Cache write error: {e}")
     
     def fetch(self, func, *args, **kwargs):
-        """Fetch con caching manuale"""
         cache_key = self.get_cache_key(*args, **kwargs)
-        
         cached = self.get_from_cache(cache_key)
         if cached is not None:
             return cached
-        
         result = error_handler.safe_execute(
             lambda: func(*args, **kwargs),
             fallback=None,
             error_msg=f"Errore in {self.name}"
         )
-        
         if result is not None:
             self.save_to_cache(cache_key, result)
-        
         return result
