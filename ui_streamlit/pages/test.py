@@ -30,7 +30,7 @@ from strategy.auto_trader import AutoTrader
 from ui_streamlit.components.validation_panel import validate_data_quality
 
 # Utility
-from utils.helpers import get_market_status, normalize_ohlcv_df, convert_symbol_to_yfinance
+from utils.helpers import get_market_status, normalize_ohlcv_df, convert_symbol_to_yfinance, convert_symbol_for_polygon
 from storage.watchlist_store import load_watchlist, save_watchlist
 from ui_streamlit.components.card import render_result_card
 from ui_streamlit.components.scan_filters import render_scan_filters
@@ -140,12 +140,10 @@ def render():
             st.info(f"📌 {test_sym} → {converted}")
 
         st.divider()
-                st.subheader("Polygon.io")
+        st.subheader("Polygon.io")
         polygon_key = st.secrets.get("POLYGON_KEY", "") or st.session_state.get('polygon_key', '')
         if not polygon_key:
             st.warning("⚠️ Chiave Polygon non trovata. Aggiungila in Configurazione o nei secrets.")
-
-        from utils.helpers import convert_symbol_for_polygon
 
         col_p1, col_p2 = st.columns(2)
         with col_p1:
@@ -441,3 +439,6 @@ def render():
         if st.button("🛠️ Test convert_symbol_to_yfinance (BTC/USD)"):
             conv = convert_symbol_to_yfinance("BTC/USD")
             st.info(f"BTC/USD → {conv}")
+        if st.button("🛠️ Test convert_symbol_for_polygon (BTC-USD)"):
+            conv = convert_symbol_for_polygon("BTC-USD")
+            st.info(f"BTC-USD → {conv}")
