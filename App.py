@@ -8,32 +8,93 @@ sys.path.insert(0, str(current_dir))
 
 st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="collapsed")
 
-# CSS leggero per migliorare l'aspetto (senza strafare)
+# CSS personalizzato per un look professionale
 st.markdown("""
 <style>
-    /* Sfondo generale */
+    /* Sfondo con gradiente */
     .stApp {
         background: radial-gradient(circle at 10% 20%, #1a1f35, #0a0e1a);
     }
-    /* Nascondi sidebar e header di default */
+    /* Nascondi elementi di default di Streamlit */
     section[data-testid="stSidebar"], header[data-testid="stHeader"] {
         display: none;
     }
-    /* Spazio per il contenuto */
-    .main-content {
-        margin-top: 2rem;
-        padding: 0 2rem 4rem;
+    /* Stile per l'header */
+    .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(18,23,40,0.8);
+        backdrop-filter: blur(10px);
+        padding: 0.8rem 2rem;
+        border-radius: 60px;
+        border: 1px solid rgba(240,185,11,0.3);
+        margin: 1rem 2rem 2rem 2rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
     }
-    /* Stile per i metriche in alto */
+    .logo {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #f0b90b, #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
     .market-info {
         display: flex;
-        gap: 2rem;
+        gap: 1.5rem;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+    .market-info-item {
+        display: flex;
         align-items: center;
-        background: rgba(18,23,40,0.7);
-        padding: 0.8rem 2rem;
-        border-radius: 40px;
-        border: 1px solid #f0b90b30;
-        margin-bottom: 2rem;
+        gap: 0.4rem;
+    }
+    .market-info-item span:last-child {
+        font-weight: 600;
+    }
+    /* Stile per i pulsanti del menu */
+    div[data-testid="column"] button {
+        border-radius: 40px !important;
+        font-weight: 600 !important;
+        padding: 0.6rem 0 !important;
+        transition: all 0.2s ease !important;
+        border: none !important;
+    }
+    div[data-testid="column"] button[kind="primary"] {
+        background: linear-gradient(135deg, #f0b90b, #fbbf24) !important;
+        color: #0a0a0f !important;
+        box-shadow: 0 4px 12px rgba(240,185,11,0.3) !important;
+    }
+    div[data-testid="column"] button[kind="secondary"] {
+        background: rgba(44,44,58,0.6) !important;
+        color: #9ca3af !important;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(240,185,11,0.2) !important;
+    }
+    div[data-testid="column"] button[kind="secondary"]:hover {
+        background: rgba(60,60,74,0.8) !important;
+        color: white !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+    div[data-testid="column"] button[kind="primary"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(240,185,11,0.5) !important;
+    }
+    /* Stile per le card dei risultati (già in card.py, ma assicuriamo coerenza) */
+    .custom-card {
+        background: linear-gradient(135deg, #1e2338, #161b2f);
+        border-radius: 24px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border-left: 6px solid;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        transition: 0.2s;
+    }
+    .custom-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -52,43 +113,58 @@ if 'last_scan_time' not in st.session_state:
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
 
-# ==================== INTESTAZIONE ====================
-col1, col2 = st.columns([1, 2])
-with col1:
-    st.markdown("## 👁️ **GOLDEN EYE**")
-    st.caption("PRO 4.0")
-with col2:
-    # Info mercato in una riga
-    now = datetime.now()
-    weekday = now.weekday()
-    hour = now.hour
+# ==================== HEADER CON LOGO E INFO MERCATO ====================
+now = datetime.now()
+weekday = now.weekday()
+hour = now.hour
 
-    crypto_status = "🟢 24/7"
-    crypto_color = "#00ff88"
-    if weekday < 5 and 9 <= hour <= 16:
-        stock_status = "🟢 Aperto"
-        stock_color = "#00ff88"
-    else:
-        stock_status = "🔴 Chiuso" + (" (Weekend)" if weekday >= 5 else "")
-        stock_color = "#ff3344"
-    forex_status = "🟢 Aperto" if weekday < 5 else "🔴 Chiuso"
-    forex_color = "#00ff88" if weekday < 5 else "#ff3344"
+# Stati mercato
+crypto_color = "#00ff88"
+if weekday < 5 and 9 <= hour <= 16:
+    stock_status = "Aperto"
+    stock_color = "#00ff88"
+    stock_icon = "📈"
+else:
+    stock_status = "Chiuso" + (" (Weekend)" if weekday >= 5 else "")
+    stock_color = "#ff3344"
+    stock_icon = "🔒"
+forex_status = "Aperto" if weekday < 5 else "Chiuso"
+forex_color = "#00ff88" if weekday < 5 else "#ff3344"
+forex_icon = "💱" if weekday < 5 else "🔒"
 
-    cols = st.columns(6)
-    with cols[0]:
-        st.metric("🕒", now.strftime("%H:%M"), now.strftime("%d/%m"))
-    with cols[1]:
-        st.metric("🪙", "24/7", delta=None, delta_color="off")
-    with cols[2]:
-        st.metric("📈", "Aperto" if "Aperto" in stock_status else "Chiuso", delta_color="off")
-    with cols[3]:
-        st.metric("💱", "Aperto" if forex_status=="🟢 Aperto" else "Chiuso", delta_color="off")
-    with cols[4]:
-        st.metric("⚡", "4.0.0")
-    with cols[5]:
-        st.metric("📊", len(st.session_state.watchlist))
-
-st.divider()
+header_html = f"""
+<div class="header-container">
+    <div class="logo">👁️ GOLDEN EYE</div>
+    <div class="market-info">
+        <div class="market-info-item">
+            <span>🕒</span>
+            <span style="color:#f0b90b;">{now.strftime("%H:%M")}</span>
+            <span style="font-size:0.8rem;">{now.strftime("%d/%m")}</span>
+        </div>
+        <div class="market-info-item">
+            <span>🪙</span>
+            <span style="color:{crypto_color};">24/7</span>
+        </div>
+        <div class="market-info-item">
+            <span>{stock_icon}</span>
+            <span style="color:{stock_color};">{stock_status}</span>
+        </div>
+        <div class="market-info-item">
+            <span>{forex_icon}</span>
+            <span style="color:{forex_color};">{forex_status}</span>
+        </div>
+        <div class="market-info-item">
+            <span>⚡</span>
+            <span style="color:#f0b90b;">4.0.0</span>
+        </div>
+        <div class="market-info-item" style="border-left:1px solid #3c3c4a; padding-left:1rem;">
+            <span>📊</span>
+            <span style="color:#f0b90b;">{len(st.session_state.watchlist)}</span>
+        </div>
+    </div>
+</div>
+"""
+st.markdown(header_html, unsafe_allow_html=True)
 
 # ==================== MENU ====================
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
