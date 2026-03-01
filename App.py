@@ -95,6 +95,12 @@ with st.sidebar:
                  key="sidebar_test"):
         st.session_state.current_page = "TEST"
         st.rerun()
+     # NUOVO PULSANTE CONFIG
+    if st.button("⚙️ CONFIG", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "CONFIG" else "secondary",
+                 key="sidebar_config"):
+        st.session_state.current_page = "CONFIG"
+        st.rerun()
     
     st.markdown("---")
     st.caption(f"📊 **Watchlist:** {len(st.session_state.watchlist)} asset")
