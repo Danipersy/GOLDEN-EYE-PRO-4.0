@@ -100,7 +100,12 @@ with st.sidebar:
                  key="sidebar_test"):
         st.session_state.current_page = "TEST"
         st.rerun()
-
+if st.button("🔎 SCANNER", use_container_width=True,
+             type="primary" if st.session_state.current_page == "SCANNER" else "secondary",
+             key="sidebar_scanner"):
+    st.session_state.current_page = "SCANNER"
+    st.rerun()
+                 
     st.markdown("---")
     st.caption(f"📊 **Watchlist:** {len(st.session_state.watchlist)} asset")
 
