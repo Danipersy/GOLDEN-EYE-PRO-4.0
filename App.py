@@ -6,7 +6,7 @@ from pathlib import Path
 current_dir = Path(__file__).parent.absolute()
 sys.path.insert(0, str(current_dir))
 
-st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="collapsed")
 
 # Applica gli stili centralizzati
 from ui_streamlit.styles import apply_styles
@@ -43,50 +43,66 @@ if "asset" in query_params:
     st.session_state.selected_asset = query_params["asset"]
     st.session_state.radar_select = query_params["asset"]
 
-# ==================== SIDEBAR ====================
-with st.sidebar:
-    st.markdown("### 🛠️ Strumenti")
-    if st.button("📊 STRUMENTI", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "STRUMENTI" else "secondary",
-                 key="sidebar_strumenti"):
-        st.session_state.current_page = "STRUMENTI"
-        st.rerun()
+# ==================== SIDEBAR PERSONALIZZATA ====================
+now = datetime.now()
+
+sidebar_html = f'''
+<div class="custom-sidebar">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <span style="font-size: 2rem; font-weight: 800; color: #F0B90B;">👁️</span>
+        <h3 style="color: #E5E7EB; margin-top: 0.5rem;">GOLDEN EYE</h3>
+    </div>
     
-    if st.button("🤖 TRADING", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "TRADING" else "secondary",
-                 key="sidebar_trading"):
-        st.session_state.current_page = "TRADING"
-        st.rerun()
+    <div class="section-title">🛠️ Strumenti</div>
+    <button class="sidebar-btn {"active" if st.session_state.current_page == "STRUMENTI" else ""}" onclick="changePage('STRUMENTI')">📊 STRUMENTI</button>
+    <button class="sidebar-btn {"active" if st.session_state.current_page == "TRADING" else ""}" onclick="changePage('TRADING')">🤖 TRADING</button>
+    <button class="sidebar-btn {"active" if st.session_state.current_page == "API" else ""}" onclick="changePage('API')">📡 API</button>
     
-    if st.button("📡 API", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "API" else "secondary",
-                 key="sidebar_api"):
-        st.session_state.current_page = "API"
-        st.rerun()
+    <div class="section-title">ℹ️ Informazioni</div>
+    <button class="sidebar-btn {"active" if st.session_state.current_page == "INFO" else ""}" onclick="changePage('INFO')">📋 INFO</button>
+    <button class="sidebar-btn {"active" if st.session_state.current_page == "TEST" else ""}" onclick="changePage('TEST')">🧪 TEST</button>
     
-    st.markdown("### ℹ️ Informazioni")
-    if st.button("📋 INFO", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "INFO" else "secondary",
-                 key="sidebar_info"):
-        st.session_state.current_page = "INFO"
-        st.rerun()
+    <div class="separator"></div>
     
-    if st.button("🧪 TEST", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "TEST" else "secondary",
-                 key="sidebar_test"):
-        st.session_state.current_page = "TEST"
-        st.rerun()
+    <div style="color: #9CA3AF; margin: 1rem 0;">
+        <div>📊 Watchlist: {len(st.session_state.watchlist)} asset</div>
+    </div>
     
-    st.markdown("---")
-    st.caption(f"📊 Watchlist: {len(st.session_state.watchlist)} asset")
-    if st.button("🔄 Svuota cache", use_container_width=True, key="clear_cache"):
-        st.cache_data.clear()
-        st.success("✅ Cache svuotata!")
-        st.rerun()
+    <button class="sidebar-btn" onclick="clearCache()">🔄 Svuota cache</button>
     
-    st.markdown("---")
-    st.caption(f"🕒 {datetime.now().strftime('%H:%M:%S')}")
-    st.caption("⚠️ Solo scopo educativo")
+    <div class="footer-info">
+        <div>🕒 {now.strftime('%H:%M:%S')}</div>
+        <div>⚠️ Solo scopo educativo</div>
+    </div>
+</div>
+
+<script>
+function changePage(page) {{
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    window.location.href = url.toString();
+}}
+
+function clearCache() {{
+    // Questo verrà gestito da Streamlit
+    window.location.href = window.location.href + "?clear_cache=true";
+}}
+</script>
+'''
+
+st.markdown(sidebar_html, unsafe_allow_html=True)
+
+# Gestione clear cache
+if st.query_params.get("clear_cache") == "true":
+    st.cache_data.clear()
+    st.success("Cache svuotata!")
+    # Rimuovi il parametro dall'URL
+    new_params = {k: v for k, v in st.query_params.items() if k != "clear_cache"}
+    st.query_params.clear()
+    st.query_params.update(new_params)
+
+# ==================== CONTENUTO PRINCIPALE ====================
+st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
 # ==================== HEADER ====================
 now = datetime.now()
@@ -129,7 +145,7 @@ for i, item in enumerate(menu_main):
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# ==================== CONTENUTO PRINCIPALE ====================
+# ==================== CONTENUTO PAGINE ====================
 with st.container():
     try:
         if st.session_state.current_page == "SCAN":
@@ -185,3 +201,5 @@ footer_html = f"""
 </div>
 """
 st.markdown(footer_html, unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
