@@ -10,15 +10,15 @@ from ai.asset_analyzer import render_ai_suggestions
 def show_page(symbol=None):
     if symbol is None:
         symbol = st.session_state.get('selected_asset', 'BTC-USD')
-
-    st.markdown(f"## 📊 Dettaglio {symbol}", unsafe_allow_html=True)
-
+    
+    st.subheader(f"📊 Dettaglio {symbol}")
+    
     # Selezione fonte dati
     with st.container():
         col1, col2 = st.columns([3, 1])
         with col2:
             use_td = st.checkbox("📡 TwelveData", value=True, help="Usa dati precisi TwelveData")
-
+    
     with st.spinner("Caricamento dati in corso..."):
         if use_td:
             df_15m, src = fetch_td_15m(symbol)
@@ -29,10 +29,10 @@ def show_page(symbol=None):
             df_15m = fetch_yf_ohlcv(symbol, "15m", "5d")
             df_1h = fetch_yf_ohlcv(symbol, "1h", "1mo")
             df_4h = fetch_yf_ohlcv(symbol, "4h", "3mo")
-
+        
         if df_15m is not None and not df_15m.empty:
             df_ind = compute_indicators_15m(df_15m)
-
+            
             # Analisi MTF
             up_1h = True
             up_4h = True
@@ -40,14 +40,14 @@ def show_page(symbol=None):
                 up_1h = df_1h['close'].iloc[-1] > df_1h['close'].ewm(50).mean().iloc[-1]
             if df_4h is not None and len(df_4h) > 20:
                 up_4h = df_4h['close'].iloc[-1] > df_4h['close'].ewm(20).mean().iloc[-1]
-
+            
             mtf_long = up_1h and up_4h
             mtf_short = (not up_1h) and (not up_4h)
-
+            
             signal = decide_signal(df_ind, mtf_long, mtf_short)
             current_price = float(df_15m['close'].iloc[-1])
-
-            # Metriche in card orizzontali
+            
+            # Metriche principali
             cols = st.columns(4)
             with cols[0]:
                 st.metric("💵 Prezzo", f"${current_price:,.2f}")
@@ -57,7 +57,7 @@ def show_page(symbol=None):
                 st.metric("📈 ADX", f"{signal['adx']:.1f}")
             with cols[3]:
                 st.metric("📉 ATR", f"${signal['atr']:.2f}")
-
+            
             # Segnale
             st.markdown(f"""
             <div style="
@@ -74,7 +74,7 @@ def show_page(symbol=None):
                 </p>
             </div>
             """, unsafe_allow_html=True)
-
+            
             # Grafico
             fig = go.Figure()
             fig.add_trace(go.Candlestick(
@@ -99,7 +99,7 @@ def show_page(symbol=None):
                 margin=dict(l=0, r=0, t=30, b=0)
             )
             st.plotly_chart(fig, use_container_width=True)
-
+            
             # News e AI
             col_n1, col_n2 = st.columns(2)
             with col_n1:
@@ -123,7 +123,7 @@ def show_page(symbol=None):
                     'mtf_short': mtf_short
                 }
                 render_ai_suggestions(symbol, data_for_ai, news)
-
+            
             # SL/TP
             st.subheader("💰 Risk Management")
             col_sl, col_tp, col_rr = st.columns(3)
@@ -138,5 +138,16 @@ def show_page(symbol=None):
                 reward = abs(tp - current_price)
                 rr = reward / risk if risk > 0 else 0
                 st.metric("📊 Risk/Reward", f"1:{rr:.2f}", border=True)
+            
+            # Salva i dati in session_state per le altre pagine
+            st.session_state.detail_data = {
+                'p': current_price,
+                'atr': signal['atr'],
+                'sig': signal['display'],
+                'score': signal['score'] if 'score' in signal else 50,
+                'rsi': signal['rsi'],
+                'adx': signal['adx']
+            }
         else:
+            st.session_state.detail_data = None
             st.error(f"❌ Impossibile caricare dati per {symbol}")
