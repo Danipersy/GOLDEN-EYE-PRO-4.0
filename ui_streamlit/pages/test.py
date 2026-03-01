@@ -130,7 +130,41 @@ def render():
                         st.caption(f"• {r['label']}")
                 else:
                     st.warning("Nessun risultato")
+# ... (inizio invariato fino alla fine del tab1)
 
+        st.divider()
+        st.subheader("Polygon.io")
+        if st.button("🟠 Test Polygon (BTC-USD)", use_container_width=True):
+            from providers.polygon_provider import polygon_provider
+            with st.spinner("Caricamento..."):
+                # Adatta simbolo per Polygon
+                poly_symbol = "X:BTCUSD"
+                df, src = polygon_provider.fetch_aggregates(poly_symbol, timespan='minute', multiplier=15, limit=100)
+                if df is not None:
+                    st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
+                else:
+                    st.error(f"❌ Fallito: {src}")
+
+        if st.button("🟠 Test Polygon (AAPL)", use_container_width=True):
+            from providers.polygon_provider import polygon_provider
+            with st.spinner("Caricamento..."):
+                df, src = polygon_provider.fetch_aggregates("AAPL", timespan='minute', multiplier=15, limit=100)
+                if df is not None:
+                    st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
+                else:
+                    st.error(f"❌ Fallito: {src}")
+
+        if st.button("🟠 Test ricerca Polygon (bitcoin)", use_container_width=True):
+            from providers.polygon_provider import polygon_provider
+            results = polygon_provider.search_symbols("bitcoin", limit=5)
+            if results:
+                st.success(f"Trovati {len(results)} risultati")
+                for r in results:
+                    st.write(f"- {r['symbol']}: {r['name']}")
+            else:
+                st.warning("Nessun risultato o chiave non valida")
+
+# ... (resto invariato)
         st.divider()
         st.subheader("Conversione simboli")
         test_sym = st.text_input("Simbolo da convertire", value="BTC-USD", key="conv_sym_advanced")
