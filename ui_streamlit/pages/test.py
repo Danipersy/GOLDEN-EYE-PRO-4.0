@@ -41,17 +41,19 @@ def render():
             st.subheader("Yahoo Finance")
             if st.button("🟢 Test Yahoo (BTC-USD)", use_container_width=True):
                 with st.spinner("Caricamento..."):
-                    df = fetch_yf_ohlcv("BTC-USD", interval="15m", period="5d", tail=50)
+                    df = fetch_yf_ohlcv("BTC-USD", interval="15m", period="5d")
                     if df is not None and not df.empty:
-                        st.success(f"✅ Yahoo OK: {len(df)} candles, ultimo prezzo ${df['close'].iloc[-1]:.2f}")
+                        df_display = df.tail(50)
+                        st.success(f"✅ Yahoo OK: {len(df_display)} candles, ultimo prezzo ${df_display['close'].iloc[-1]:.2f}")
                     else:
                         st.error("❌ Yahoo Fallito")
 
             if st.button("🟢 Test Yahoo (AAPL)", use_container_width=True):
                 with st.spinner("Caricamento..."):
-                    df = fetch_yf_ohlcv("AAPL", interval="15m", period="5d", tail=50)
+                    df = fetch_yf_ohlcv("AAPL", interval="15m", period="5d")
                     if df is not None and not df.empty:
-                        st.success(f"✅ Yahoo OK: {len(df)} candles, ultimo prezzo ${df['close'].iloc[-1]:.2f}")
+                        df_display = df.tail(50)
+                        st.success(f"✅ Yahoo OK: {len(df_display)} candles, ultimo prezzo ${df_display['close'].iloc[-1]:.2f}")
                     else:
                         st.error("❌ Yahoo Fallito")
 
@@ -256,10 +258,14 @@ def render():
 
         with col_s2:
             st.subheader("API Usage Tracker")
+            # Il tracker è auto-inizializzante, non serve fare nulla
             stats = tracker.get_provider_stats()
             for stat in stats:
-                st.metric(stat['name'], f"{stat['today']}/{stat['limit'] if stat['limit'] else '∞'}",
-                          help=stat['description'])
+                st.metric(
+                    stat['name'],
+                    f"{stat['today']}/{stat['limit'] if stat['limit'] else '∞'}",
+                    help=stat['description']
+                )
 
     # ============================================
     # TEST WATCHLIST
@@ -299,8 +305,11 @@ def render():
 
         # Test Yahoo
         try:
-            df = fetch_yf_ohlcv("BTC-USD", interval="15m", period="1d", tail=10)
-            results.append(("Yahoo BTC-USD", "✅ OK" if df is not None else "❌ Fallito"))
+            df = fetch_yf_ohlcv("BTC-USD", interval="15m", period="1d")
+            if df is not None and not df.empty:
+                results.append(("Yahoo BTC-USD", "✅ OK"))
+            else:
+                results.append(("Yahoo BTC-USD", "❌ Fallito"))
         except Exception as e:
             results.append(("Yahoo BTC-USD", f"❌ Errore: {str(e)[:50]}"))
 
@@ -321,7 +330,6 @@ def render():
         # Test indicatori
         try:
             df_fake = pd.DataFrame({'close': np.random.randn(100).cumsum() + 100})
-            # (semplificato)
             results.append(("Indicatori", "✅ OK (dati fake)"))
         except Exception as e:
             results.append(("Indicatori", f"❌ {str(e)[:50]}"))
