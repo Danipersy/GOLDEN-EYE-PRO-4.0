@@ -1,15 +1,20 @@
 import streamlit as st
 import platform
 import sys
+import time
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Provider
 from providers.multi_provider import scan_symbol, fetch_yf_ohlcv
-from providers.twelvedata_provider import fetch_td_15m, fetch_td_1h, fetch_td_4h, search_symbols_td
+from providers.twelvedata_provider import (
+    fetch_td_15m, fetch_td_1h, fetch_td_4h, 
+    search_symbols_td, convert_symbol_for_twelvedata
+)
 from providers.marketaux_provider import fetch_marketaux_sentiment
 from providers.base_provider import tracker
+from providers.telegram_provider import send_telegram_alert, format_signal_alert
 
 # Indicatori
 from indicators.robust_ta import compute_indicators_15m, decide_signal
@@ -20,6 +25,13 @@ from ai.asset_analyzer import AssetAIAnalyzer
 # Strategia
 from strategy.backtest import backtest_engine
 from strategy.money_manager import MoneyManager
+from strategy.auto_trader import AutoTrader
+from strategy.validator import validate_data_quality
+
+# Utility
+from utils.helpers import get_market_status, normalize_ohlcv_df
+from storage.watchlist_store import load_watchlist, save_watchlist
+from ui_streamlit.components.card import render_result_card
 
 def render():
     st.markdown("## 🧪 Diagnostic Center")
@@ -39,7 +51,13 @@ def render():
     st.divider()
 
     # Tabs principali
-    tab1, tab2, tab3, tab4 = st.tabs(["📡 Provider", "📊 Indicatori", "🤖 AI & Strategia", "⚙️ Sistema"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📡 Provider", 
+        "📊 Indicatori & Filtri", 
+        "🤖 AI & Strategia", 
+        "⚙️ Sistema",
+        "🔧 Altri test"
+    ])
 
     # ==================== TAB 1: PROVIDER ====================
     with tab1:
@@ -65,15 +83,22 @@ def render():
 
         with col_b:
             st.subheader("TwelveData")
-            if st.button("🔵 Test BTC/USD", use_container_width=True):
+            if st.button("🔵 Test BTC/USD (15m)", use_container_width=True):
                 df, src = fetch_td_15m("BTC/USD")
                 if df is not None:
                     st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
                 else:
                     st.error(f"❌ {src}")
 
-            if st.button("🔵 Test ETH/USD", use_container_width=True):
-                df, src = fetch_td_15m("ETH/USD")
+            if st.button("🔵 Test BTC/USD (1h)", use_container_width=True):
+                df, src = fetch_td_1h("BTC/USD")
+                if df is not None:
+                    st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
+                else:
+                    st.error(f"❌ {src}")
+
+            if st.button("🔵 Test BTC/USD (4h)", use_container_width=True):
+                df, src = fetch_td_4h("BTC/USD")
                 if df is not None:
                     st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
                 else:
@@ -104,46 +129,54 @@ def render():
                 else:
                     st.warning("Nessun risultato")
 
-    # ==================== TAB 2: INDICATORI ====================
-    with tab2:
-        st.subheader("Calcolo indicatori su dati sintetici")
-        # Genera dati fake
-        dates = pd.date_range(end=datetime.now(), periods=300, freq='15min')
-        df_fake = pd.DataFrame({
-            'datetime': dates,
-            'open': np.random.randn(300).cumsum() + 50000,
-            'high': np.random.randn(300).cumsum() + 50100,
-            'low': np.random.randn(300).cumsum() + 49900,
-            'close': np.random.randn(300).cumsum() + 50000,
-            'volume': np.random.randint(100, 1000, 300)
-        })
+        st.divider()
+        st.subheader("Conversione simboli")
+        test_sym = st.text_input("Simbolo da convertire", value="BTC-USD", key="conv_sym_advanced")
+        if st.button("🔄 Converti", use_container_width=True):
+            converted = convert_symbol_for_twelvedata(test_sym)
+            st.info(f"📌 {test_sym} → {converted}")
 
-        if st.button("🧮 Calcola RSI, ADX, ATR", use_container_width=True):
-            df_ind = compute_indicators_15m(df_fake)
-            cols = st.columns(4)
-            with cols[0]:
-                st.metric("RSI", f"{df_ind['rsi'].iloc[-1]:.1f}")
-            with cols[1]:
-                adx_col = [c for c in df_ind.columns if 'ADX' in c.upper()]
-                adx_val = df_ind[adx_col[0]].iloc[-1] if adx_col else 0
-                st.metric("ADX", f"{adx_val:.1f}")
-            with cols[2]:
-                st.metric("ATR", f"${df_ind['atr'].iloc[-1]:.2f}")
-            with cols[3]:
-                st.metric("EMA200", f"${df_ind['ema200'].iloc[-1]:.2f}")
+    # ==================== TAB 2: INDICATORI & FILTRI ====================
+    with tab2:
+        st.subheader("Calcolo indicatori su dati reali (esempio BTC)")
+        if st.button("📥 Scarica dati BTC e calcola", use_container_width=True):
+            with st.spinner("Caricamento dati..."):
+                df, src = fetch_td_15m("BTC/USD")
+                if df is not None:
+                    df_ind = compute_indicators_15m(df)
+                    cols = st.columns(4)
+                    with cols[0]:
+                        st.metric("RSI", f"{df_ind['rsi'].iloc[-1]:.1f}")
+                    with cols[1]:
+                        adx_col = [c for c in df_ind.columns if 'ADX' in c.upper()]
+                        adx_val = df_ind[adx_col[0]].iloc[-1] if adx_col else 0
+                        st.metric("ADX", f"{adx_val:.1f}")
+                    with cols[2]:
+                        st.metric("ATR", f"${df_ind['atr'].iloc[-1]:.2f}")
+                    with cols[3]:
+                        st.metric("EMA200", f"${df_ind['ema200'].iloc[-1]:.2f}")
+                else:
+                    st.error("Impossibile caricare dati")
 
         st.divider()
-        st.subheader("Classificazione segnale")
-        if st.button("🎯 Genera segnale casuale", use_container_width=True):
-            df_ind = compute_indicators_15m(df_fake)
-            mtf_long = np.random.choice([True, False])
-            mtf_short = np.random.choice([True, False])
-            signal = decide_signal(df_ind, mtf_long, mtf_short)
-            st.info(f"**{signal['display']}** (forza: {signal['strength']})")
-            col1, col2, col3 = st.columns(3)
-            col1.metric("RSI", f"{signal['rsi']:.1f}")
-            col2.metric("ADX", f"{signal['adx']:.1f}")
-            col3.metric("ATR", f"${signal['atr']:.2f}")
+        st.subheader("Test filtri scan (livelli L1-L5)")
+        # Simula variazioni percentuali e verifica livello
+        test_changes = [-3.5, -1.5, -0.8, -0.2, 0.1, 0.6, 1.2, 2.5]
+        results = []
+        for change in test_changes:
+            if abs(change) > 2:
+                level = 5
+            elif abs(change) > 1:
+                level = 4
+            elif abs(change) > 0.5:
+                level = 3
+            elif abs(change) > 0.1:
+                level = 2
+            else:
+                level = 1
+            results.append({"Variazione %": change, "Livello": f"L{level}"})
+        df_levels = pd.DataFrame(results)
+        st.dataframe(df_levels, use_container_width=True)
 
     # ==================== TAB 3: AI & STRATEGIA ====================
     with tab3:
@@ -189,6 +222,43 @@ def render():
             else:
                 st.warning("Nessun trade generato (normale con dati casuali)")
 
+        st.divider()
+        st.subheader("Money Manager")
+        mm = MoneyManager(initial_capital=10000)
+        col_m1, col_m2, col_m3 = st.columns(3)
+        with col_m1:
+            if st.button("➕ +500", use_container_width=True):
+                mm.update_after_trade(500)
+                st.rerun()
+        with col_m2:
+            if st.button("➖ -300", use_container_width=True):
+                mm.update_after_trade(-300)
+                st.rerun()
+        with col_m3:
+            if st.button("🔄 Reset", use_container_width=True):
+                st.session_state.money_manager = MoneyManager(10000)
+                st.rerun()
+        metrics = mm.get_metrics()
+        st.metric("Capitale", f"${metrics['current_capital']:.2f}", delta=f"{metrics['total_pnl_pct']:.2f}%")
+        st.metric("Drawdown", f"{metrics['current_drawdown']:.2f}%", delta=f"Max: {metrics['max_drawdown']:.2f}%")
+
+        st.divider()
+        st.subheader("AutoTrader (simulazione)")
+        if st.button("▶️ Simula 5 trade", use_container_width=True):
+            # Simula alcuni trade con risultati casuali
+            trades = []
+            capital = 10000
+            for i in range(5):
+                pnl_pct = np.random.normal(0.5, 2)  # media 0.5%, dev std 2%
+                pnl = capital * pnl_pct / 100
+                capital += pnl
+                trades.append({
+                    "Trade": i+1,
+                    "PnL %": f"{pnl_pct:.2f}%",
+                    "Capitale": f"${capital:.2f}"
+                })
+            st.table(pd.DataFrame(trades))
+
     # ==================== TAB 4: SISTEMA ====================
     with tab4:
         col_s1, col_s2 = st.columns(2)
@@ -210,6 +280,83 @@ def render():
                           help=stat['description'])
 
         st.divider()
-        st.subheader("Watchlist")
+        st.subheader("Test Watchlist")
         wl = st.session_state.watchlist
-        st.write(f"**{len(wl)} asset**: {', '.join(wl)}")
+        st.write(f"**Attuale ({len(wl)} asset):** {', '.join(wl)}")
+        col_w1, col_w2 = st.columns(2)
+        with col_w1:
+            if st.button("➕ Aggiungi TEST", use_container_width=True):
+                if "TEST" not in wl:
+                    wl.append("TEST")
+                    save_watchlist(wl)
+                    st.success("✅ TEST aggiunto")
+                    st.rerun()
+        with col_w2:
+            if st.button("❌ Rimuovi TEST", use_container_width=True):
+                if "TEST" in wl:
+                    wl.remove("TEST")
+                    save_watchlist(wl)
+                    st.success("✅ TEST rimosso")
+                    st.rerun()
+
+        st.divider()
+        st.subheader("Validazione dati")
+        if st.button("📊 Test validazione su BTC", use_container_width=True):
+            with st.spinner("Caricamento..."):
+                df15, _ = fetch_td_15m("BTC/USD")
+                df1h, _ = fetch_td_1h("BTC/USD")
+                df4h, _ = fetch_td_4h("BTC/USD")
+                if df15 is not None:
+                    val = validate_data_quality(df15, df1h, df4h)
+                    st.metric("Qualità", f"{val['quality_score']:.1f}%")
+                    with st.expander("Dettaglio"):
+                        for item in val['ok']:
+                            st.success(item)
+                        for item in val['warnings']:
+                            st.warning(item)
+                        for item in val['issues']:
+                            st.error(item)
+                else:
+                    st.error("Dati non disponibili")
+
+    # ==================== TAB 5: ALTRI TEST ====================
+    with tab5:
+        st.subheader("Test componenti UI")
+        if st.button("🃏 Mostra card esempio", use_container_width=True):
+            # Crea un risultato finto
+            fake_result = {
+                'symbol': 'BTC-USD',
+                'price': 51234.56,
+                'change': 2.34,
+                'volume': 12345678,
+                'level': 5,
+                'score': 85
+            }
+            render_result_card(fake_result)
+
+        st.divider()
+        st.subheader("Test notifiche Telegram")
+        if st.button("📨 Invia test Telegram", use_container_width=True):
+            success = send_telegram_alert("🧪 Test dal Diagnostic Center")
+            if success:
+                st.success("Messaggio inviato!")
+            else:
+                st.error("Invio fallito (controlla i secrets)")
+
+        st.divider()
+        st.subheader("Test performance")
+        if st.button("⏱️ Cronometra fetch BTC", use_container_width=True):
+            start = time.time()
+            df, src = fetch_td_15m("BTC/USD")
+            elapsed = time.time() - start
+            if df is not None:
+                st.success(f"TwelveData: {elapsed:.2f}s")
+            else:
+                st.error(f"Fallito in {elapsed:.2f}s")
+            start = time.time()
+            df2 = fetch_yf_ohlcv("BTC-USD", interval="15m", period="1d")
+            elapsed = time.time() - start
+            if df2 is not None:
+                st.success(f"Yahoo: {elapsed:.2f}s")
+            else:
+                st.error(f"Fallito in {elapsed:.2f}s")
