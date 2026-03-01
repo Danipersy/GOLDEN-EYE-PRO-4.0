@@ -13,13 +13,8 @@ class PolygonProvider(BaseProvider):
         super().__init__("polygon", ttl=300)
         self.base_url = "https://api.polygon.io"
     
-    @count_api_call('polygon', 'aggregates')
+       @count_api_call('polygon', 'aggregates')
     def fetch_aggregates(self, symbol: str, timespan: str = 'minute', multiplier: int = 15, from_date: str = None, to_date: str = None, limit: int = 5000):
-        """
-        Fetch OHLCV data from Polygon aggregates endpoint.
-        timespan: minute, hour, day
-        multiplier: 1, 5, 15, etc.
-        """
         if not POLYGON_KEY:
             return None, "NO_KEY"
         
@@ -40,14 +35,20 @@ class PolygonProvider(BaseProvider):
         
         try:
             response = requests.get(url, params=params, timeout=10)
+            if response.status_code == 401:
+                return None, "UNAUTHORIZED (chiave non valida)"
+            if response.status_code == 403:
+                return None, "FORBIDDEN (piano gratuito non supporta questo endpoint?)"
             if response.status_code == 429:
                 return None, "RATE_LIMIT"
+            if response.status_code == 404:
+                return None, "NOT_FOUND (simbolo non valido)"
             if response.status_code != 200:
                 return None, f"HTTP_{response.status_code}"
             
             data = response.json()
             if data.get('status') != 'OK':
-                return None, "ERROR"
+                return None, f"ERROR: {data.get('error', 'unknown')}"
             
             results = data.get('results', [])
             if not results:
@@ -67,9 +68,12 @@ class PolygonProvider(BaseProvider):
             
             return df, "Polygon"
             
+        except requests.exceptions.Timeout:
+            return None, "TIMEOUT"
+        except requests.exceptions.ConnectionError:
+            return None, "CONNECTION_ERROR"
         except Exception as e:
-            print(f"Polygon error: {e}")
-            return None, "ERROR"
+            return None, f"ERROR: {str(e)[:50]}"
     
     @count_api_call('polygon', 'tickers')
     def search_symbols(self, query: str, limit: int = 20):
