@@ -62,8 +62,14 @@ def apply_styles():
     .info-item .value.green { color: #10B981; }
     .info-item .value.red { color: #EF4444; }
 
-    /* Menu con bottoni nativi personalizzati - stile elegante */
-    div[data-testid="column"] button {
+    /* Menu container */
+    .menu-container {
+        display: flex;
+        gap: 0.8rem;
+        margin: 0 2rem 1.5rem 2rem;
+    }
+
+    .menu-container button {
         background: rgba(30, 36, 44, 0.6) !important;
         backdrop-filter: blur(4px) !important;
         border: 1px solid rgba(240, 185, 11, 0.3) !important;
@@ -76,9 +82,10 @@ def apply_styles():
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        width: 100%;
     }
 
-    div[data-testid="column"] button:hover {
+    .menu-container button:hover {
         background: rgba(45, 55, 68, 0.8) !important;
         border-color: #F0B90B !important;
         color: white !important;
@@ -86,7 +93,7 @@ def apply_styles():
         box-shadow: 0 12px 24px -8px rgba(240, 185, 11, 0.4) !important;
     }
 
-    div[data-testid="column"] button[kind="primary"] {
+    .menu-container button[kind="primary"] {
         background: linear-gradient(145deg, #F0B90B, #D4A009) !important;
         border: none !important;
         color: #0B0E14 !important;
@@ -94,7 +101,7 @@ def apply_styles():
         box-shadow: 0 6px 14px rgba(240, 185, 11, 0.3) !important;
     }
 
-    div[data-testid="column"] button[kind="primary"]:hover {
+    .menu-container button[kind="primary"]:hover {
         background: linear-gradient(145deg, #FBBF24, #F0B90B) !important;
         transform: translateY(-3px) scale(1.02);
         box-shadow: 0 15px 30px -8px #F0B90B !important;
@@ -172,11 +179,11 @@ def apply_styles():
         color: #0B0E14 !important;
     }
 
-    /* Badge personalizzati (opzionali per card) */
-    .badge-l5 { background: #10B981; color: black; }
-    .badge-l4 { background: #F0B90B; color: black; }
-    .badge-l3 { background: #3B82F6; color: white; }
-    .badge-l2 { background: #8B5CF6; color: white; }
-    .badge-l1 { background: #6B7280; color: white; }
+    /* Badge personalizzati per le card */
+    .badge-l5 { background: #10B981; color: black; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
+    .badge-l4 { background: #F0B90B; color: black; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
+    .badge-l3 { background: #3B82F6; color: white; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
+    .badge-l2 { background: #8B5CF6; color: white; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
+    .badge-l1 { background: #6B7280; color: white; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
 </style>
     """, unsafe_allow_html=True)
