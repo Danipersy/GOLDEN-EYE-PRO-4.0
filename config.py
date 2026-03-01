@@ -142,6 +142,13 @@ TD_INTERVAL = "15min"
 TD_OUTPUTSIZE = 5000
 TD_MAX_RETRIES = 3
 
+# Nuovo provider Polygon
+POLYGON_BASE_URL = "https://api.polygon.io"
+POLYGON_TIMESPAN = "minute"
+POLYGON_MULTIPLIER = 15
+POLYGON_LIMIT = 5000
+POLYGON_MAX_RETRIES = 3
+
 # ============================================
 # IMPOSTAZIONI SCANNER
 # ============================================
