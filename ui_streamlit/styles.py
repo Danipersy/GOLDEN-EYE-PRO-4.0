@@ -5,26 +5,87 @@ def apply_styles():
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-    * { font-family: 'Inter', sans-serif; }
+    * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
 
     .stApp {
         background: #0B0E14;
     }
 
-    /* Nascondi SOLO l'header di default di Streamlit, NON la sidebar */
+    /* Nascondi SOLO l'header di default di Streamlit */
     header[data-testid="stHeader"] {
         display: none !important;
     }
 
-    /* Sidebar personalizzata - assicuriamoci che sia visibile */
-    section[data-testid="stSidebar"] {
-        background: #14181F !important;
+    /* Sidebar personalizzata - la creiamo noi con HTML */
+    .custom-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        height: 100vh;
+        background: #14181F;
         border-right: 1px solid #2A2F38;
-        display: block !important;  /* Forza la visualizzazione */
+        padding: 2rem 1rem;
+        z-index: 9999;
+        overflow-y: auto;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.5);
     }
-    
-    section[data-testid="stSidebar"] .stButton button {
+
+    .custom-sidebar .section-title {
+        color: #F0B90B;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 1.5rem 0 0.8rem 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .custom-sidebar .sidebar-btn {
+        width: 100%;
+        background: #1E242C;
+        border: 1px solid #2A2F38;
+        border-radius: 40px;
+        padding: 0.7rem 1rem;
         margin-bottom: 0.5rem;
+        color: #E5E7EB;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .custom-sidebar .sidebar-btn:hover {
+        background: #2A2F38;
+        border-color: #F0B90B;
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
+    }
+
+    .custom-sidebar .sidebar-btn.active {
+        background: linear-gradient(145deg, #F0B90B, #D4A009);
+        color: #0B0E14;
+        font-weight: 700;
+        border: none;
+    }
+
+    .custom-sidebar .separator {
+        border-top: 1px solid #2A2F38;
+        margin: 1.5rem 0;
+    }
+
+    .custom-sidebar .footer-info {
+        color: #9CA3AF;
+        font-size: 0.8rem;
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    /* Contenuto principale - con margine per la sidebar */
+    .main-content {
+        margin-left: 260px;
+        padding: 0 2rem;
     }
 
     /* Bottoni globali */
@@ -67,7 +128,7 @@ def apply_styles():
         backdrop-filter: blur(10px);
         border-radius: 60px;
         padding: 0.6rem 2rem;
-        margin: 1rem 2rem 1.5rem 2rem;
+        margin: 1rem 0 1.5rem 0;
         border: 1px solid rgba(240, 185, 11, 0.25);
         box-shadow: 0 15px 30px -15px rgba(0,0,0,0.7);
         flex-wrap: wrap;
@@ -150,7 +211,7 @@ def apply_styles():
     /* Divider */
     hr {
         border-color: rgba(240, 185, 11, 0.2) !important;
-        margin: 1.5rem 2rem !important;
+        margin: 1.5rem 0 !important;
     }
 
     /* Footer */
@@ -159,7 +220,7 @@ def apply_styles():
         backdrop-filter: blur(8px);
         border-radius: 40px;
         padding: 0.6rem 2rem;
-        margin: 2rem 2rem 1rem 2rem;
+        margin: 2rem 0 1rem 0;
         border: 1px solid rgba(240, 185, 11, 0.25);
         color: #9CA3AF;
         font-size: 0.85rem;
@@ -178,6 +239,15 @@ def apply_styles():
 
     /* Responsive per mobile */
     @media (max-width: 768px) {
+        .custom-sidebar {
+            width: 100%;
+            height: auto;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .main-content {
+            margin-left: 0;
+        }
         .trader-header {
             flex-direction: column;
             align-items: flex-start;
