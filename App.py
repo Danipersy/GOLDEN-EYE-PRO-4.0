@@ -50,13 +50,6 @@ if "asset" in query_params:
 
 # ==================== SIDEBAR ====================
 with st.sidebar:
-    # Pulsante per chiudere la sidebar (utile su mobile)
-    col1, col2 = st.columns([5, 1])
-    with col2:
-        if st.button("✕", key="close_sidebar"):
-            st.session_state.sidebar_open = False
-            st.rerun()
-
     st.markdown("### 👁️ **GOLDEN EYE**")
     st.markdown("---")
 
@@ -80,11 +73,17 @@ with st.sidebar:
         st.session_state.current_page = "API"
         st.rerun()
 
-    # NUOVO PULSANTE CONFIGURAZIONE
     if st.button("⚙️ CONFIG", use_container_width=True,
                  type="primary" if st.session_state.current_page == "CONFIG" else "secondary",
                  key="sidebar_config"):
         st.session_state.current_page = "CONFIG"
+        st.rerun()
+
+    # NUOVO PULSANTE SCANNER
+    if st.button("🔎 SCANNER", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "SCANNER" else "secondary",
+                 key="sidebar_scanner"):
+        st.session_state.current_page = "SCANNER"
         st.rerun()
 
     st.markdown("### ℹ️ **Informazioni**")
@@ -100,12 +99,7 @@ with st.sidebar:
                  key="sidebar_test"):
         st.session_state.current_page = "TEST"
         st.rerun()
-if st.button("🔎 SCANNER", use_container_width=True,
-             type="primary" if st.session_state.current_page == "SCANNER" else "secondary",
-             key="sidebar_scanner"):
-    st.session_state.current_page = "SCANNER"
-    st.rerun()
-                 
+
     st.markdown("---")
     st.caption(f"📊 **Watchlist:** {len(st.session_state.watchlist)} asset")
 
@@ -203,10 +197,13 @@ with st.container():
         elif st.session_state.current_page == "TEST":
             from ui_streamlit.pages.test import render
             render()
-        # NUOVA PAGINA CONFIGURAZIONE
         elif st.session_state.current_page == "CONFIG":
             from ui_streamlit.pages.configurazione import render
             render()
+        # NUOVA PAGINA SCANNER
+        elif st.session_state.current_page == "SCANNER":
+            from ui_streamlit.pages.scanner import show_page
+            show_page()
     except Exception as e:
         st.error(f"Errore: {e}")
         if st.session_state.debug_mode:
