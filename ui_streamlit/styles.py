@@ -11,18 +11,20 @@ def apply_styles():
         background: #0B0E14;
     }
 
-    /* Sidebar personalizzata */
+    /* Nascondi SOLO l'header di default di Streamlit, NON la sidebar */
+    header[data-testid="stHeader"] {
+        display: none !important;
+    }
+
+    /* Sidebar personalizzata - assicuriamoci che sia visibile */
     section[data-testid="stSidebar"] {
         background: #14181F !important;
         border-right: 1px solid #2A2F38;
+        display: block !important;  /* Forza la visualizzazione */
     }
+    
     section[data-testid="stSidebar"] .stButton button {
         margin-bottom: 0.5rem;
-    }
-
-    /* Nascondi header di default */
-    header[data-testid="stHeader"] {
-        display: none !important;
     }
 
     /* Bottoni globali */
@@ -184,9 +186,6 @@ def apply_styles():
         }
         .market-info {
             gap: 1rem;
-        }
-        .menu-container {
-            flex-wrap: wrap;
         }
         .stButton button {
             font-size: 0.8rem;
