@@ -21,7 +21,7 @@ class PolygonProvider(BaseProvider):
         multiplier: 1, 5, 15, etc.
         """
         if not POLYGON_KEY:
-            return None, "NO_KEY"
+            return None, "NO_KEY (manca la chiave API)"
         
         if from_date is None:
             to_date = datetime.now()
@@ -41,23 +41,24 @@ class PolygonProvider(BaseProvider):
         try:
             response = requests.get(url, params=params, timeout=10)
             if response.status_code == 401:
-                return None, "UNAUTHORIZED (chiave non valida)"
+                return None, "ERRORE: Chiave API non valida (401)"
             if response.status_code == 403:
-                return None, "FORBIDDEN (piano gratuito non supporta questo endpoint?)"
+                return None, "ERRORE: Accesso negato (403) - Il tuo piano potrebbe non supportare questo endpoint"
             if response.status_code == 429:
-                return None, "RATE_LIMIT"
+                return None, "ERRORE: Rate limit superato (429)"
             if response.status_code == 404:
-                return None, "NOT_FOUND (simbolo non valido)"
+                return None, "ERRORE: Simbolo non trovato (404)"
             if response.status_code != 200:
-                return None, f"HTTP_{response.status_code}"
+                return None, f"ERRORE HTTP {response.status_code}"
             
             data = response.json()
             if data.get('status') != 'OK':
-                return None, f"ERROR: {data.get('error', 'unknown')}"
+                error_msg = data.get('error', 'sconosciuto')
+                return None, f"ERRORE API: {error_msg}"
             
             results = data.get('results', [])
             if not results:
-                return None, "NO_DATA"
+                return None, "NESSUN DATO (results vuoto)"
             
             df = pd.DataFrame(results)
             df = df.rename(columns={
@@ -74,11 +75,11 @@ class PolygonProvider(BaseProvider):
             return df, "Polygon"
             
         except requests.exceptions.Timeout:
-            return None, "TIMEOUT"
+            return None, "ERRORE: Timeout"
         except requests.exceptions.ConnectionError:
-            return None, "CONNECTION_ERROR"
+            return None, "ERRORE: Connessione fallita"
         except Exception as e:
-            return None, f"ERROR: {str(e)[:50]}"
+            return None, f"ERRORE: {str(e)[:100]}"
     
     @count_api_call('polygon', 'tickers')
     def search_symbols(self, query: str, limit: int = 20):
