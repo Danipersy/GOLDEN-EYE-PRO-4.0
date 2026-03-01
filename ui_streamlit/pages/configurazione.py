@@ -14,7 +14,6 @@ def render():
     st.subheader("⚙️ Configurazione Applicazione")
     st.caption("Modifica parametri, chiavi API e preferenze")
 
-    # Tabs per organizzare le impostazioni
     tab1, tab2, tab3, tab4 = st.tabs(["📊 Indicatori", "💰 Risk Management", "🔑 API Keys", "🖥️ Avanzate"])
 
     with tab1:
@@ -61,20 +60,21 @@ def render():
         st.markdown("### Chiavi API (solo per questa sessione)")
         st.info("Le chiavi sono normalmente caricate dai secrets di Streamlit. Qui puoi sovrascriverle temporaneamente.")
 
-        # Leggi dalle secrets di default
         default_td = st.secrets.get("TWELVEDATA_KEY", "")
         default_av = st.secrets.get("ALPHA_VANTAGE_KEY", "")
         default_mk = st.secrets.get("MARKETAUX_TOKEN", "")
+        default_poly = st.secrets.get("POLYGON_KEY", "")
 
         td_key = st.text_input("TwelveData API Key", value=st.session_state.get('twelvedata_key', default_td), type="password")
         av_key = st.text_input("Alpha Vantage API Key", value=st.session_state.get('alphavantage_key', default_av), type="password")
         mk_key = st.text_input("Marketaux Token", value=st.session_state.get('marketaux_token', default_mk), type="password")
+        poly_key = st.text_input("Polygon.io API Key", value=st.session_state.get('polygon_key', default_poly), type="password", help="Registrati su polygon.io per una chiave gratuita")
 
         if st.button("Salva chiavi (sessione corrente)", use_container_width=True):
             st.session_state.twelvedata_key = td_key
             st.session_state.alphavantage_key = av_key
             st.session_state.marketaux_token = mk_key
-            # Nota: per usarle nei provider, dovresti modificare i provider per leggere da st.session_state
+            st.session_state.polygon_key = poly_key
             st.success("Chiavi temporanee impostate (valide fino al refresh)")
 
         st.divider()
@@ -93,7 +93,6 @@ def render():
 
         st.markdown("### Reset")
         if st.button("🔄 Ripristina tutti i valori di default", use_container_width=True):
-            # Ricarica la pagina e resetta la sessione (mantenendo solo i dati essenziali)
             for key in list(st.session_state.keys()):
                 if key not in ['watchlist', 'selected_asset', 'radar_select', 'current_page', 'last_scan_time', 'scan_results']:
                     del st.session_state[key]
