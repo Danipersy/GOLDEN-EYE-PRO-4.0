@@ -1,11 +1,10 @@
-# ui_streamlit/pages/info.py
 import streamlit as st
 
 def render():
     st.subheader("ℹ️ Informazioni sull'App")
     st.markdown("""
     **GOLDEN EYE PRO 4.0** è una piattaforma di trading intelligence progettata per fornire analisi multi-asset in tempo reale.
-    
+  
     # Layout a colonne
     col_info1, col_info2 = st.columns(2)
     
