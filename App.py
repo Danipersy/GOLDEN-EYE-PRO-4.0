@@ -8,132 +8,173 @@ sys.path.insert(0, str(current_dir))
 
 st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="collapsed")
 
-# CSS personalizzato per look moderno
-st.markdown("""
+# ==================== SELEZIONE TEMA ====================
+temi = {
+    "Futuristico (blu/viola)": {
+        "bg_start": "#0f172a",
+        "bg_end": "#1e293b",
+        "accent1": "#38bdf8",
+        "accent2": "#a78bfa",
+        "text": "#e2e8f0",
+        "header_bg": "rgba(15,23,42,0.7)",
+        "btn_bg": "rgba(56,189,248,0.1)",
+        "btn_border": "#38bdf8",
+        "btn_active": "linear-gradient(135deg, #38bdf8, #a78bfa)"
+    },
+    "Elegante (oro/grafite)": {
+        "bg_start": "#1e293b",
+        "bg_end": "#0f172a",
+        "accent1": "#fbbf24",
+        "accent2": "#d97706",
+        "text": "#f1f5f9",
+        "header_bg": "rgba(30,41,59,0.7)",
+        "btn_bg": "rgba(251,191,36,0.1)",
+        "btn_border": "#fbbf24",
+        "btn_active": "linear-gradient(135deg, #fbbf24, #d97706)"
+    },
+    "Natura (verde/blu)": {
+        "bg_start": "#0e2a47",
+        "bg_end": "#1a3a5f",
+        "accent1": "#10b981",
+        "accent2": "#34d399",
+        "text": "#e2e8f0",
+        "header_bg": "rgba(14,42,71,0.7)",
+        "btn_bg": "rgba(16,185,129,0.1)",
+        "btn_border": "#10b981",
+        "btn_active": "linear-gradient(135deg, #10b981, #0e2a47)"
+    },
+    "Minimal (monocromatico)": {
+        "bg_start": "#1e1e1e",
+        "bg_end": "#2d2d2d",
+        "accent1": "#ffffff",
+        "accent2": "#cccccc",
+        "text": "#f0f0f0",
+        "header_bg": "rgba(30,30,30,0.7)",
+        "btn_bg": "transparent",
+        "btn_border": "#ffffff",
+        "btn_active": "#ffffff"
+    },
+    "Cyberpunk (neon)": {
+        "bg_start": "#111827",
+        "bg_end": "#1f2937",
+        "accent1": "#00ffff",
+        "accent2": "#ff00ff",
+        "text": "#f0f0f0",
+        "header_bg": "rgba(17,24,39,0.7)",
+        "btn_bg": "rgba(0,255,255,0.1)",
+        "btn_border": "#00ffff",
+        "btn_active": "linear-gradient(135deg, #00ffff, #ff00ff)"
+    }
+}
+
+if "tema_corrente" not in st.session_state:
+    st.session_state.tema_corrente = "Futuristico (blu/viola)"
+
+tema = temi[st.session_state.tema_corrente]
+
+# CSS dinamico basato sul tema selezionato
+st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    * { font-family: 'Inter', sans-serif; }
-    
-    .stApp {
-        background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-    }
-    
-    section[data-testid="stSidebar"], header[data-testid="stHeader"] {
+    * {{ font-family: 'Inter', sans-serif; }}
+    .stApp {{
+        background: linear-gradient(145deg, {tema['bg_start']} 0%, {tema['bg_end']} 100%);
+    }}
+    section[data-testid="stSidebar"], header[data-testid="stHeader"] {{
         display: none;
-    }
-    
-    /* Header con effetto vetro */
-    .modern-header {
+    }}
+    .modern-header {{
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: rgba(15, 23, 42, 0.7);
+        background: {tema['header_bg']};
         backdrop-filter: blur(12px);
         border-radius: 40px;
         padding: 0.7rem 2rem;
         margin: 1rem 2rem 2rem 2rem;
-        border: 1px solid rgba(56, 189, 248, 0.2);
+        border: 1px solid {tema['accent1']}40;
         box-shadow: 0 20px 30px -10px rgba(0,0,0,0.5);
-    }
-    
-    .logo {
+    }}
+    .logo {{
         font-size: 1.8rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #38bdf8, #a78bfa);
+        background: linear-gradient(135deg, {tema['accent1']}, {tema['accent2']});
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-    }
-    
-    .market-info {
+    }}
+    .market-info {{
         display: flex;
         gap: 2rem;
-        color: #cbd5e1;
+        color: {tema['text']}aa;
         font-size: 0.95rem;
-    }
-    
-    .info-item {
+    }}
+    .info-item {{
         display: flex;
         align-items: center;
         gap: 0.5rem;
-    }
-    
-    .info-value {
-        font-weight: 600;
-    }
-    
-    .green { color: #4ade80; }
-    .red { color: #f87171; }
-    .blue { color: #38bdf8; }
-    .purple { color: #c084fc; }
-    
-    /* Menu pulsanti */
-    .menu-row {
+    }}
+    .info-value {{ font-weight: 600; }}
+    .green {{ color: #4ade80; }}
+    .red {{ color: #f87171; }}
+    .blue {{ color: #38bdf8; }}
+    .purple {{ color: #c084fc; }}
+    .menu-row {{
         display: flex;
         gap: 0.8rem;
         margin: 0 2rem 1.5rem 2rem;
-    }
-    
-    .menu-btn {
+    }}
+    .menu-btn {{
         flex: 1;
-        background: rgba(30, 41, 59, 0.6);
+        background: {tema['btn_bg']};
         backdrop-filter: blur(8px);
-        border: 1px solid rgba(56, 189, 248, 0.2);
+        border: 1px solid {tema['btn_border']}40;
         border-radius: 40px;
         padding: 0.9rem 0;
-        color: #94a3b8;
+        color: {tema['text']};
         font-weight: 600;
         font-size: 1rem;
         cursor: pointer;
         transition: all 0.2s ease;
         box-shadow: 0 8px 12px -6px rgba(0,0,0,0.4);
-    }
-    
-    .menu-btn:hover {
-        background: rgba(51, 65, 85, 0.8);
-        color: #f1f5f9;
+    }}
+    .menu-btn:hover {{
+        background: {tema['accent1']}20;
+        color: white;
         transform: translateY(-3px);
-        border-color: #38bdf8;
-        box-shadow: 0 12px 20px -8px #38bdf880;
-    }
-    
-    .menu-btn.active {
-        background: linear-gradient(135deg, #38bdf8, #a78bfa);
+        border-color: {tema['accent1']};
+        box-shadow: 0 12px 20px -8px {tema['accent1']}80;
+    }}
+    .menu-btn.active {{
+        background: {tema['btn_active']};
         color: white;
         border: none;
-        box-shadow: 0 12px 24px -8px #38bdf8;
-    }
-    
-    /* Footer */
-    .modern-footer {
-        background: rgba(15, 23, 42, 0.7);
+        box-shadow: 0 12px 24px -8px {tema['accent1']};
+    }}
+    .modern-footer {{
+        background: {tema['header_bg']};
         backdrop-filter: blur(8px);
         border-radius: 30px;
         padding: 0.6rem 2rem;
         margin: 2rem 2rem 1rem 2rem;
-        border: 1px solid rgba(56, 189, 248, 0.2);
-        color: #94a3b8;
+        border: 1px solid {tema['accent1']}40;
+        color: {tema['text']}aa;
         font-size: 0.85rem;
         display: flex;
         justify-content: space-between;
-    }
-    
-    /* Metriche personalizzate */
-    div[data-testid="stMetric"] {
-        background: rgba(30, 41, 59, 0.5);
+    }}
+    div[data-testid="stMetric"] {{
+        background: {tema['btn_bg']};
         border-radius: 20px;
         padding: 0.8rem;
-        border: 1px solid rgba(56, 189, 248, 0.2);
+        border: 1px solid {tema['accent1']}40;
         backdrop-filter: blur(4px);
-    }
-    
-    div[data-testid="stMetric"] label {
-        color: #94a3b8 !important;
-    }
-    
-    hr {
-        border-color: rgba(56, 189, 248, 0.2) !important;
-    }
+    }}
+    div[data-testid="stMetric"] label {{
+        color: {tema['text']}aa !important;
+    }}
+    hr {{
+        border-color: {tema['accent1']}40 !important;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -150,6 +191,10 @@ if 'last_scan_time' not in st.session_state:
     st.session_state.last_scan_time = None
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
+
+# ==================== SELEZIONE TEMA (solo in sviluppo) ====================
+with st.sidebar:
+    st.selectbox("🎨 Seleziona tema", list(temi.keys()), key="tema_corrente")
 
 # ==================== HEADER ====================
 now = datetime.now()
@@ -186,12 +231,10 @@ menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 cols = st.columns(len(menu_items))
 for i, item in enumerate(menu_items):
     with cols[i]:
-        # Uso un bottone HTML personalizzato per stile uniforme
         active_class = "active" if st.session_state.current_page == item else ""
         btn_html = f'<button class="menu-btn {active_class}" onclick="changePage(\'{item}\')">{item}</button>'
         st.markdown(btn_html, unsafe_allow_html=True)
 
-# JavaScript per navigazione
 st.markdown("""
 <script>
 function changePage(page) {
