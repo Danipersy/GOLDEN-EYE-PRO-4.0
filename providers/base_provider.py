@@ -47,14 +47,21 @@ class APIUsageTracker:
                     'icon': '🟡',
                     'color': '#f59e0b'
                 },
-                # NUOVO PROVIDER POLYGON
-                'polygon': {
+                'finnhub': {
                     'today': 0, 
                     'total': 0, 
                     'last_reset': date.today().isoformat(),
-                    'name': 'Polygon.io',
-                    'icon': '🔶',
-                    'color': '#f97316'
+                    'name': 'Finnhub',
+                    'icon': '📈',
+                    'color': '#00ACC1'
+                },
+                'scanner': {
+                    'today': 0, 
+                    'total': 0, 
+                    'last_reset': date.today().isoformat(),
+                    'name': 'Scanner',
+                    'icon': '🔎',
+                    'color': '#94a3b8'
                 }
             }
         
@@ -110,28 +117,34 @@ class APIUsageTracker:
                 'description': '800 chiamate/giorno, 8/minuto'
             },
             'alphavantage': {
-                'daily': 500, 
+                'daily': 25, 
                 'minute': 5, 
                 'cost_per_call': 1,
-                'description': '500 chiamate/giorno, 5/minuto'
+                'description': '25 chiamate/giorno, 5/minuto'
             },
             'yahoo': {
-                'daily': None,
+                'daily': 2000,
                 'minute': None, 
                 'cost_per_call': 0,
-                'description': 'Rate limit variabile'
+                'description': 'circa 2000 chiamate/ora (variabile)'
             },
             'marketaux': {
                 'daily': 100, 
                 'minute': 10, 
                 'cost_per_call': 1,
-                'description': '100 chiamate/giorno'
+                'description': '100 chiamate/giorno, 10/minuto'
             },
-            'polygon': {
-                'daily': 5,  # Limite gratuito (5 chiamate/minuto, ma qui contiamo giornaliere? Mettiamo un valore indicativo)
-                'minute': 5,
+            'finnhub': {
+                'daily': None,
+                'minute': 60,
                 'cost_per_call': 1,
-                'description': '5 chiamate/minuto (piano gratuito)'
+                'description': '60 chiamate/minuto (piano gratuito)'
+            },
+            'scanner': {
+                'daily': None,
+                'minute': None,
+                'cost_per_call': 0,
+                'description': 'Chiamate interne allo scanner'
             }
         }
         return limits.get(provider, {'daily': '?', 'minute': '?', 'cost_per_call': 0})
