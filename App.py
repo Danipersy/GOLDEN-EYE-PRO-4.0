@@ -6,12 +6,11 @@ from pathlib import Path
 current_dir = Path(__file__).parent.absolute()
 sys.path.insert(0, str(current_dir))
 
-# Configurazione pagina con sidebar espansa di default
 st.set_page_config(
-    page_title="GOLDEN EYE PRO 4.0", 
-    page_icon="👁️", 
-    layout="wide", 
-    initial_sidebar_state="expanded"  # Forza l'apertura della sidebar
+    page_title="GOLDEN EYE PRO 4.0",
+    page_icon="👁️",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # Applica gli stili centralizzati
@@ -57,59 +56,59 @@ with st.sidebar:
         if st.button("✕", key="close_sidebar"):
             st.session_state.sidebar_open = False
             st.rerun()
-    
+
     st.markdown("### 👁️ **GOLDEN EYE**")
     st.markdown("---")
-    
+
     st.markdown("### 🛠️ **Strumenti**")
-    
+
     if st.button("📊 STRUMENTI", use_container_width=True,
                  type="primary" if st.session_state.current_page == "STRUMENTI" else "secondary",
                  key="sidebar_strumenti"):
         st.session_state.current_page = "STRUMENTI"
         st.rerun()
-    
+
     if st.button("🤖 TRADING", use_container_width=True,
                  type="primary" if st.session_state.current_page == "TRADING" else "secondary",
                  key="sidebar_trading"):
         st.session_state.current_page = "TRADING"
         st.rerun()
-    
+
     if st.button("📡 API", use_container_width=True,
                  type="primary" if st.session_state.current_page == "API" else "secondary",
                  key="sidebar_api"):
         st.session_state.current_page = "API"
         st.rerun()
-    
-    st.markdown("---")
-    st.markdown("### ℹ️ **Informazioni**")
-    
-    if st.button("📋 INFO", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "INFO" else "secondary",
-                 key="sidebar_info"):
-        st.session_state.current_page = "INFO"
-        st.rerun()
-    
-    if st.button("🧪 TEST", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "TEST" else "secondary",
-                 key="sidebar_test"):
-        st.session_state.current_page = "TEST"
-        st.rerun()
-     # NUOVO PULSANTE CONFIG
+
+    # NUOVO PULSANTE CONFIGURAZIONE
     if st.button("⚙️ CONFIG", use_container_width=True,
                  type="primary" if st.session_state.current_page == "CONFIG" else "secondary",
                  key="sidebar_config"):
         st.session_state.current_page = "CONFIG"
         st.rerun()
-    
+
+    st.markdown("### ℹ️ **Informazioni**")
+
+    if st.button("📋 INFO", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "INFO" else "secondary",
+                 key="sidebar_info"):
+        st.session_state.current_page = "INFO"
+        st.rerun()
+
+    if st.button("🧪 TEST", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "TEST" else "secondary",
+                 key="sidebar_test"):
+        st.session_state.current_page = "TEST"
+        st.rerun()
+
     st.markdown("---")
     st.caption(f"📊 **Watchlist:** {len(st.session_state.watchlist)} asset")
-    
+
     if st.button("🔄 Svuota cache", use_container_width=True, key="clear_cache"):
         st.cache_data.clear()
         st.success("✅ Cache svuotata!")
         st.rerun()
-    
+
     st.markdown("---")
     st.caption(f"🕒 {datetime.now().strftime('%H:%M:%S')}")
     st.caption("⚠️ Solo scopo educativo")
@@ -198,6 +197,10 @@ with st.container():
             render()
         elif st.session_state.current_page == "TEST":
             from ui_streamlit.pages.test import render
+            render()
+        # NUOVA PAGINA CONFIGURAZIONE
+        elif st.session_state.current_page == "CONFIG":
+            from ui_streamlit.pages.configurazione import render
             render()
     except Exception as e:
         st.error(f"Errore: {e}")
