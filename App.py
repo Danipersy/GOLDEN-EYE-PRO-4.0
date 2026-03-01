@@ -6,7 +6,13 @@ from pathlib import Path
 current_dir = Path(__file__).parent.absolute()
 sys.path.insert(0, str(current_dir))
 
-st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
+# Configurazione pagina con sidebar espansa di default
+st.set_page_config(
+    page_title="GOLDEN EYE PRO 4.0", 
+    page_icon="👁️", 
+    layout="wide", 
+    initial_sidebar_state="expanded"  # Forza l'apertura della sidebar
+)
 
 # Applica gli stili centralizzati
 from ui_streamlit.styles import apply_styles
@@ -43,9 +49,19 @@ if "asset" in query_params:
     st.session_state.selected_asset = query_params["asset"]
     st.session_state.radar_select = query_params["asset"]
 
-# ==================== SIDEBAR (nativa Streamlit) ====================
+# ==================== SIDEBAR ====================
 with st.sidebar:
-    st.markdown("### 🛠️ **Strumenti**")
+    # Pulsante per chiudere la sidebar (utile su mobile)
+    col1, col2 = st.columns([5, 1])
+    with col2:
+        if st.button("✕", key="close_sidebar"):
+            st.session_state.sidebar_open = False
+            st.rerun()
+    
+    st.markdown("### 👁️ **GOLDEN EYE**")
+    st.markdown("---")
+    
+    st.mark("### 🛠️ **Strumenti**")
     
     if st.button("📊 STRUMENTI", use_container_width=True,
                  type="primary" if st.session_state.current_page == "STRUMENTI" else "secondary",
@@ -65,6 +81,7 @@ with st.sidebar:
         st.session_state.current_page = "API"
         st.rerun()
     
+    st.markdown("---")
     st.markdown("### ℹ️ **Informazioni**")
     
     if st.button("📋 INFO", use_container_width=True,
@@ -80,7 +97,7 @@ with st.sidebar:
         st.rerun()
     
     st.markdown("---")
-    st.caption(f"📊 Watchlist: {len(st.session_state.watchlist)} asset")
+    st.caption(f"📊 **Watchlist:** {len(st.session_state.watchlist)} asset")
     
     if st.button("🔄 Svuota cache", use_container_width=True, key="clear_cache"):
         st.cache_data.clear()
@@ -105,9 +122,11 @@ forex_status = ("Aperto" if weekday < 5 else "Chiuso", "green" if weekday < 5 el
 
 header_html = f"""
 <div class="trader-header">
-    <div class="logo">GOLDEN <span>EYE</span></div>
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="logo">GOLDEN <span>EYE</span></div>
+        <div style="color: #9CA3AF; font-size: 0.8rem;">{now.strftime('%H:%M')} {now.strftime('%d/%m')}</div>
+    </div>
     <div class="market-info">
-        <div class="info-item"><span>🕒</span><span class="value">{now.strftime("%H:%M")}</span><span>{now.strftime("%d/%m")}</span></div>
         <div class="info-item"><span>🪙</span><span class="value green">24/7</span></div>
         <div class="info-item"><span>📈</span><span class="value {stock_status[1]}">{stock_status[0]}</span></div>
         <div class="info-item"><span>💱</span><span class="value {forex_status[1]}">{forex_status[0]}</span></div>
