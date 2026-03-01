@@ -63,25 +63,27 @@ def render():
         default_td = st.secrets.get("TWELVEDATA_KEY", "")
         default_av = st.secrets.get("ALPHA_VANTAGE_KEY", "")
         default_mk = st.secrets.get("MARKETAUX_TOKEN", "")
-        default_poly = st.secrets.get("POLYGON_KEY", "")
+        default_finnhub = st.secrets.get("FINNHUB_KEY", "")
 
         td_key = st.text_input("TwelveData API Key", value=st.session_state.get('twelvedata_key', default_td), type="password")
         av_key = st.text_input("Alpha Vantage API Key", value=st.session_state.get('alphavantage_key', default_av), type="password")
         mk_key = st.text_input("Marketaux Token", value=st.session_state.get('marketaux_token', default_mk), type="password")
-        poly_key = st.text_input("Polygon.io API Key", value=st.session_state.get('polygon_key', default_poly), type="password", help="Registrati su polygon.io per una chiave gratuita")
+        finnhub_key = st.text_input("Finnhub API Key", value=st.session_state.get('finnhub_key', default_finnhub), type="password", 
+                                   help="Registrati su finnhub.io per una chiave gratuita (60 chiamate/minuto)")
 
         if st.button("Salva chiavi (sessione corrente)", use_container_width=True):
             st.session_state.twelvedata_key = td_key
             st.session_state.alphavantage_key = av_key
             st.session_state.marketaux_token = mk_key
-            st.session_state.polygon_key = poly_key
+            st.session_state.finnhub_key = finnhub_key
             st.success("Chiavi temporanee impostate (valide fino al refresh)")
 
         st.divider()
         st.markdown("### Stato consumi API oggi")
         stats = tracker.get_provider_stats()
         for stat in stats:
-            st.metric(stat['name'], f"{stat['today']}/{stat['limit'] if stat['limit'] else '∞'}")
+            st.metric(stat['name'], f"{stat['today']}/{stat['limit'] if stat['limit'] else '∞'}",
+                     help=stat['description'])
 
     with tab4:
         st.markdown("### Watchlist predefinita")
