@@ -62,14 +62,8 @@ def apply_styles():
     .info-item .value.green { color: #10B981; }
     .info-item .value.red { color: #EF4444; }
 
-    /* Menu container */
-    .menu-container {
-        display: flex;
-        gap: 0.8rem;
-        margin: 0 2rem 1.5rem 2rem;
-    }
-
-    .menu-container button {
+    /* Menu container - selettori specifici per i bottoni nelle colonne */
+    .menu-container div[data-testid="column"] button {
         background: rgba(30, 36, 44, 0.6) !important;
         backdrop-filter: blur(4px) !important;
         border: 1px solid rgba(240, 185, 11, 0.3) !important;
@@ -85,7 +79,7 @@ def apply_styles():
         width: 100%;
     }
 
-    .menu-container button:hover {
+    .menu-container div[data-testid="column"] button:hover {
         background: rgba(45, 55, 68, 0.8) !important;
         border-color: #F0B90B !important;
         color: white !important;
@@ -93,7 +87,7 @@ def apply_styles():
         box-shadow: 0 12px 24px -8px rgba(240, 185, 11, 0.4) !important;
     }
 
-    .menu-container button[kind="primary"] {
+    .menu-container div[data-testid="column"] button[kind="primary"] {
         background: linear-gradient(145deg, #F0B90B, #D4A009) !important;
         border: none !important;
         color: #0B0E14 !important;
@@ -101,7 +95,7 @@ def apply_styles():
         box-shadow: 0 6px 14px rgba(240, 185, 11, 0.3) !important;
     }
 
-    .menu-container button[kind="primary"]:hover {
+    .menu-container div[data-testid="column"] button[kind="primary"]:hover {
         background: linear-gradient(145deg, #FBBF24, #F0B90B) !important;
         transform: translateY(-3px) scale(1.02);
         box-shadow: 0 15px 30px -8px #F0B90B !important;
@@ -179,7 +173,7 @@ def apply_styles():
         color: #0B0E14 !important;
     }
 
-    /* Badge personalizzati per le card (usati in card.py) */
+    /* Badge personalizzati per le card */
     .badge-l5 { background: #10B981; color: black; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
     .badge-l4 { background: #F0B90B; color: black; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
     .badge-l3 { background: #3B82F6; color: white; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
