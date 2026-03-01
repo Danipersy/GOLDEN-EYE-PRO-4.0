@@ -5,18 +5,48 @@ def apply_styles():
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-    * { font-family: 'Inter', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+    * { font-family: 'Inter', sans-serif; }
 
     .stApp {
         background: #0B0E14;
     }
 
-    /* Nascondi elementi di default di Streamlit */
+    /* Nascondi sidebar e header di default */
     section[data-testid="stSidebar"], header[data-testid="stHeader"] {
         display: none !important;
     }
 
-    /* Header elegante (glassmorphism) */
+    /* Bottoni globali - stile uniforme */
+    .stButton button {
+        border-radius: 40px !important;
+        padding: 0.5rem 1rem !important;
+        font-weight: 600 !important;
+        transition: all 0.2s ease !important;
+        border: 1px solid #2A2F38 !important;
+        background: #14181F !important;
+        color: #E5E7EB !important;
+        box-shadow: none !important;
+    }
+
+    .stButton button:hover {
+        border-color: #F0B90B !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3) !important;
+    }
+
+    .stButton button[kind="primary"] {
+        background: linear-gradient(145deg, #F0B90B, #D4A009) !important;
+        border: none !important;
+        color: #0B0E14 !important;
+        font-weight: 700 !important;
+    }
+
+    .stButton button[kind="primary"]:hover {
+        background: linear-gradient(145deg, #FBBF24, #F0B90B) !important;
+        box-shadow: 0 6px 14px rgba(240, 185, 11, 0.4) !important;
+    }
+
+    /* Header personalizzato */
     .trader-header {
         display: flex;
         justify-content: space-between;
@@ -62,67 +92,7 @@ def apply_styles():
     .info-item .value.green { color: #10B981; }
     .info-item .value.red { color: #EF4444; }
 
-    /* Bottoni menu personalizzati */
-    .menu-button {
-        flex: 1;
-        background: #14181F;
-        border: 1px solid #2A2F38;
-        border-radius: 40px;
-        padding: 0.7rem 0;
-        color: #E5E7EB;
-        font-weight: 600;
-        font-size: 0.95rem;
-        text-align: center;
-        text-decoration: none;
-        transition: all 0.25s ease;
-        cursor: pointer;
-        display: inline-block;
-        font-family: 'Inter', sans-serif;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        box-shadow: none;
-    }
-
-    .menu-button:hover {
-        background: #1E242C;
-        border-color: #F0B90B;
-        transform: translateY(-2px);
-    }
-
-    .menu-button.active {
-        background: linear-gradient(145deg, #F0B90B, #D4A009);
-        border: none;
-        color: #0B0E14;
-        font-weight: 700;
-        box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
-    }
-
-    .menu-button.active:hover {
-        background: linear-gradient(145deg, #FBBF24, #F0B90B);
-        box-shadow: 0 8px 16px rgba(240, 185, 11, 0.4);
-    }
-
-    /* Divider personalizzato */
-    hr {
-        border-color: rgba(240, 185, 11, 0.2) !important;
-        margin: 1.5rem 2rem !important;
-    }
-
-    /* Footer */
-    .trader-footer {
-        background: rgba(20, 24, 31, 0.8);
-        backdrop-filter: blur(8px);
-        border-radius: 40px;
-        padding: 0.6rem 2rem;
-        margin: 2rem 2rem 1rem 2rem;
-        border: 1px solid rgba(240, 185, 11, 0.25);
-        color: #9CA3AF;
-        font-size: 0.85rem;
-        display: flex;
-        justify-content: space-between;
-    }
-
-    /* Metriche personalizzate */
+    /* Metriche */
     div[data-testid="stMetric"] {
         background: #14181F;
         border-radius: 16px;
@@ -140,18 +110,6 @@ def apply_styles():
     div[data-testid="stMetric"] [data-testid="stMetricValue"] {
         color: #F0B90B !important;
         font-weight: 700 !important;
-    }
-
-    /* Dataframe */
-    .dataframe {
-        background: #14181F !important;
-        border-radius: 16px !important;
-        border: 1px solid #2A2F38 !important;
-    }
-    .dataframe th {
-        background: #1E242C !important;
-        color: #F0B90B !important;
-        font-weight: 600 !important;
     }
 
     /* Tabs */
@@ -173,7 +131,27 @@ def apply_styles():
         color: #0B0E14 !important;
     }
 
-    /* Badge personalizzati per le card */
+    /* Divider */
+    hr {
+        border-color: rgba(240, 185, 11, 0.2) !important;
+        margin: 1.5rem 2rem !important;
+    }
+
+    /* Footer */
+    .trader-footer {
+        background: rgba(20, 24, 31, 0.8);
+        backdrop-filter: blur(8px);
+        border-radius: 40px;
+        padding: 0.6rem 2rem;
+        margin: 2rem 2rem 1rem 2rem;
+        border: 1px solid rgba(240, 185, 11, 0.25);
+        color: #9CA3AF;
+        font-size: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* Badge per le card */
     .badge-l5 { background: #10B981; color: black; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
     .badge-l4 { background: #F0B90B; color: black; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
     .badge-l3 { background: #3B82F6; color: white; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
