@@ -11,10 +11,7 @@ def apply_styles():
         background: #0B0E14;
     }
 
-    /* Nascondi SOLO l'header di default di Streamlit, MAI la sidebar */
-    header[data-testid="stHeader"] {
-        display: none !important;
-    }
+   
 
     /* Sidebar - personalizziamo l'aspetto ma NON la nascondiamo */
     section[data-testid="stSidebar"] {
