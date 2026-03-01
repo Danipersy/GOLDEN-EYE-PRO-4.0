@@ -61,7 +61,7 @@ with st.sidebar:
     st.markdown("### 👁️ **GOLDEN EYE**")
     st.markdown("---")
     
-    st.mark("### 🛠️ **Strumenti**")
+    st.markdown("### 🛠️ **Strumenti**")
     
     if st.button("📊 STRUMENTI", use_container_width=True,
                  type="primary" if st.session_state.current_page == "STRUMENTI" else "secondary",
