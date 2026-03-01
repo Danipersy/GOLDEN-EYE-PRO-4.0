@@ -62,52 +62,44 @@ def apply_styles():
     .info-item .value.green { color: #10B981; }
     .info-item .value.red { color: #EF4444; }
 
-    /* ==================== MENU PULSANTI (stile come dettaglio) ==================== */
-    .menu-container {
-        display: flex;
-        gap: 0.8rem;
-        margin: 0 2rem 1.5rem 2rem;
-    }
-
-    /* Selettore iper-specifico per i bottoni nelle colonne del menu */
-    .menu-container div[data-testid="column"] div[data-testid="stButton"] button {
-        background: #14181F !important;
-        border: 1px solid #2A2F38 !important;
-        border-radius: 40px !important;  /* Più arrotondato */
-        color: #E5E7EB !important;
-        font-weight: 600 !important;
-        font-size: 0.95rem !important;
-        padding: 0.7rem 0 !important;
-        transition: all 0.2s ease !important;
-        box-shadow: none !important;
-        width: 100%;
+    /* Bottoni menu personalizzati */
+    .menu-button {
+        flex: 1;
+        background: #14181F;
+        border: 1px solid #2A2F38;
+        border-radius: 40px;
+        padding: 0.7rem 0;
+        color: #E5E7EB;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.25s ease;
         cursor: pointer;
-        line-height: 1.2;
-        min-height: unset;
+        display: inline-block;
+        font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: none;
     }
 
-    .menu-container div[data-testid="column"] div[data-testid="stButton"] button:hover {
-        background: #1E242C !important;
-        border-color: #F0B90B !important;
-        color: white !important;
+    .menu-button:hover {
+        background: #1E242C;
+        border-color: #F0B90B;
         transform: translateY(-2px);
     }
 
-    /* Pulsante attivo (primary) */
-    .menu-container div[data-testid="column"] div[data-testid="stButton"] button[kind="primary"],
-    .menu-container div[data-testid="column"] div[data-testid="stButton"] button[data-testid="stBaseButton-primary"] {
-        background: linear-gradient(145deg, #F0B90B, #D4A009) !important;
-        border: none !important;
-        color: #0B0E14 !important;
-        font-weight: 700 !important;
-        box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3) !important;
+    .menu-button.active {
+        background: linear-gradient(145deg, #F0B90B, #D4A009);
+        border: none;
+        color: #0B0E14;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
     }
 
-    .menu-container div[data-testid="column"] div[data-testid="stButton"] button[kind="primary"]:hover,
-    .menu-container div[data-testid="column"] div[data-testid="stButton"] button[data-testid="stBaseButton-primary"]:hover {
-        background: linear-gradient(145deg, #FBBF24, #F0B90B) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(240, 185, 11, 0.4) !important;
+    .menu-button.active:hover {
+        background: linear-gradient(145deg, #FBBF24, #F0B90B);
+        box-shadow: 0 8px 16px rgba(240, 185, 11, 0.4);
     }
 
     /* Divider personalizzato */
@@ -130,7 +122,7 @@ def apply_styles():
         justify-content: space-between;
     }
 
-    /* Metriche personalizzate (come nello screenshot) */
+    /* Metriche personalizzate */
     div[data-testid="stMetric"] {
         background: #14181F;
         border-radius: 16px;
