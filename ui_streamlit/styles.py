@@ -62,46 +62,40 @@ def apply_styles():
     .info-item .value.green { color: #10B981; }
     .info-item .value.red { color: #EF4444; }
 
-    /* Menu container - stile come i bottoni di dettaglio */
+    /* ==================== MENU PULSANTI (stile come dettaglio) ==================== */
     .menu-container {
         display: flex;
         gap: 0.8rem;
         margin: 0 2rem 1.5rem 2rem;
     }
 
-    .menu-container div[data-testid="column"] {
-        padding: 0 !important;
-    }
-
-    .menu-container div[data-testid="column"] div[data-testid="stButton"] {
-        width: 100%;
-    }
-
-    .menu-container div[data-testid="column"] button {
+    /* Selettore iper-specifico per i bottoni nelle colonne del menu */
+    .menu-container div[data-testid="column"] div[data-testid="stButton"] button {
         background: #14181F !important;
         border: 1px solid #2A2F38 !important;
-        border-radius: 16px !important;
+        border-radius: 40px !important;  /* Più arrotondato */
         color: #E5E7EB !important;
         font-weight: 600 !important;
         font-size: 0.95rem !important;
         padding: 0.7rem 0 !important;
         transition: all 0.2s ease !important;
+        box-shadow: none !important;
         width: 100%;
         cursor: pointer;
         line-height: 1.2;
         min-height: unset;
-        box-shadow: none !important;
     }
 
-    .menu-container div[data-testid="column"] button:hover {
+    .menu-container div[data-testid="column"] div[data-testid="stButton"] button:hover {
         background: #1E242C !important;
         border-color: #F0B90B !important;
         color: white !important;
         transform: translateY(-2px);
     }
 
-    .menu-container div[data-testid="column"] button[kind="primary"],
-    .menu-container div[data-testid="column"] button[data-testid="stBaseButton-primary"] {
+    /* Pulsante attivo (primary) */
+    .menu-container div[data-testid="column"] div[data-testid="stButton"] button[kind="primary"],
+    .menu-container div[data-testid="column"] div[data-testid="stButton"] button[data-testid="stBaseButton-primary"] {
         background: linear-gradient(145deg, #F0B90B, #D4A009) !important;
         border: none !important;
         color: #0B0E14 !important;
@@ -109,8 +103,8 @@ def apply_styles():
         box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3) !important;
     }
 
-    .menu-container div[data-testid="column"] button[kind="primary"]:hover,
-    .menu-container div[data-testid="column"] button[data-testid="stBaseButton-primary"]:hover {
+    .menu-container div[data-testid="column"] div[data-testid="stButton"] button[kind="primary"]:hover,
+    .menu-container div[data-testid="column"] div[data-testid="stButton"] button[data-testid="stBaseButton-primary"]:hover {
         background: linear-gradient(145deg, #FBBF24, #F0B90B) !important;
         transform: translateY(-2px);
         box-shadow: 0 8px 16px rgba(240, 185, 11, 0.4) !important;
@@ -136,7 +130,7 @@ def apply_styles():
         justify-content: space-between;
     }
 
-    /* Metriche personalizzate - come nello screenshot */
+    /* Metriche personalizzate (come nello screenshot) */
     div[data-testid="stMetric"] {
         background: #14181F;
         border-radius: 16px;
