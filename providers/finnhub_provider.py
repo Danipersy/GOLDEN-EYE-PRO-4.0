@@ -119,6 +119,33 @@ class FinnhubProvider(BaseProvider):
             pass
         return []
     
+    @count_api_call('finnhub', 'news_sentiment')
+    def get_news_sentiment(self, symbol: str):
+        """Ottieni sentiment delle news per un simbolo"""
+        if not FINNHUB_KEY:
+            return None
+        
+        url = f"{self.base_url}/news-sentiment"
+        params = {
+            "symbol": symbol,
+            "token": FINNHUB_KEY
+        }
+        
+        try:
+            response = requests.get(url, params=params, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    'sentiment': data.get('sentiment', {}).get('score', 0.5),
+                    'bearish': data.get('sentiment', {}).get('bearish', 0),
+                    'bullish': data.get('sentiment', {}).get('bullish', 0),
+                    'mentions': data.get('mentionCount', 0),
+                    'source': 'Finnhub'
+                }
+        except:
+            pass
+        return None
+    
     @count_api_call('finnhub', 'search')
     def search_symbols(self, query: str, limit: int = 20):
         """Cerca simboli per nome"""
