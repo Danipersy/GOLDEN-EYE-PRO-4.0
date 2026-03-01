@@ -139,11 +139,15 @@ def render():
             converted = convert_symbol_for_twelvedata(test_sym)
             st.info(f"📌 {test_sym} → {converted}")
 
-        st.divider()
+                st.divider()
         st.subheader("Polygon.io")
         polygon_key = st.secrets.get("POLYGON_KEY", "") or st.session_state.get('polygon_key', '')
         if not polygon_key:
             st.warning("⚠️ Chiave Polygon non trovata. Aggiungila in Configurazione o nei secrets.")
+        else:
+            st.caption(f"Chiave presente: {polygon_key[:4]}...{polygon_key[-4:]}")
+
+        from utils.helpers import convert_symbol_for_polygon
 
         col_p1, col_p2 = st.columns(2)
         with col_p1:
@@ -158,6 +162,7 @@ def render():
                             st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
                         else:
                             st.error(f"❌ Fallito: {src} (simbolo convertito: {poly_symbol})")
+                            st.info("💡 Suggerimenti: verifica che la chiave sia valida e che il tuo piano supporti gli aggregates. Il piano gratuito potrebbe non includere dati intraday.")
 
             if st.button("🟠 Test Polygon (AAPL)", use_container_width=True):
                 with st.spinner("Caricamento..."):
