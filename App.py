@@ -56,8 +56,10 @@ header_html = f"""
 """
 st.markdown(header_html, unsafe_allow_html=True)
 
-# Menu (bottoni nativi Streamlit)
+# Menu (bottoni nativi Streamlit con contenitore personalizzato)
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
+
+st.markdown('<div class="menu-container">', unsafe_allow_html=True)
 cols = st.columns(len(menu_items))
 for i, item in enumerate(menu_items):
     with cols[i]:
@@ -66,10 +68,11 @@ for i, item in enumerate(menu_items):
                      key=f"menu_{item}"):
             st.session_state.current_page = item
             st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# Contenuto principale (invariato)
+# Contenuto principale
 with st.container():
     try:
         if st.session_state.current_page == "SCAN":
