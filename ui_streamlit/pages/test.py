@@ -15,7 +15,7 @@ from providers.twelvedata_provider import (
 from providers.marketaux_provider import fetch_marketaux_sentiment
 from providers.base_provider import tracker
 from providers.telegram_provider import send_telegram_alert
-from providers.polygon_provider import polygon_provider
+from providers.finnhub_provider import finnhub_provider
 
 # Indicatori
 from indicators.robust_ta import compute_indicators_15m, decide_signal
@@ -30,7 +30,7 @@ from strategy.auto_trader import AutoTrader
 from ui_streamlit.components.validation_panel import validate_data_quality
 
 # Utility
-from utils.helpers import get_market_status, normalize_ohlcv_df, convert_symbol_to_yfinance, convert_symbol_for_polygon
+from utils.helpers import get_market_status, normalize_ohlcv_df, convert_symbol_to_yfinance
 from storage.watchlist_store import load_watchlist, save_watchlist
 from ui_streamlit.components.card import render_result_card
 from ui_streamlit.components.scan_filters import render_scan_filters
@@ -147,8 +147,6 @@ def render():
         else:
             st.caption(f"Chiave presente: {finnhub_key[:4]}...{finnhub_key[-4:]}")
 
-        from providers.finnhub_provider import finnhub_provider
-
         col_f1, col_f2 = st.columns(2)
         with col_f1:
             if st.button("📈 Test Finnhub (AAPL quote)", use_container_width=True):
@@ -160,6 +158,17 @@ def render():
                         if data:
                             st.success(f"✅ {src}: ${data['price']:.2f} ({data['change_percent']:+.2f}%)")
                             st.caption(f"Volume: {data['volume']:,} | High: ${data['high']:.2f} | Low: ${data['low']:.2f}")
+                        else:
+                            st.error(f"❌ Fallito: {src}")
+
+            if st.button("📈 Test Finnhub (MSFT quote)", use_container_width=True):
+                with st.spinner("Caricamento..."):
+                    if not finnhub_key:
+                        st.error("❌ Chiave mancante")
+                    else:
+                        data, src = finnhub_provider.get_quote("MSFT")
+                        if data:
+                            st.success(f"✅ {src}: ${data['price']:.2f} ({data['change_percent']:+.2f}%)")
                         else:
                             st.error(f"❌ Fallito: {src}")
 
@@ -176,35 +185,63 @@ def render():
                         else:
                             st.error(f"❌ Fallito: {src}")
 
-        if st.button("🔍 Test ricerca Finnhub (bitcoin)", use_container_width=True):
-            with st.spinner("Ricerca..."):
-                if not finnhub_key:
-                    st.error("❌ Chiave mancante")
-                else:
-                    results = finnhub_provider.search_symbols("bitcoin", limit=5)
-                    if results:
-                        st.success(f"Trovati {len(results)} risultati")
-                        for r in results:
-                            st.write(f"- {r['symbol']}: {r['name']} ({r['type']})")
+            if st.button("🪙 Test Finnhub (ETH-USD crypto)", use_container_width=True):
+                with st.spinner("Caricamento..."):
+                    if not finnhub_key:
+                        st.error("❌ Chiave mancante")
                     else:
-                        st.warning("Nessun risultato")
+                        data, src = finnhub_provider.get_crypto_quote("ETH-USD")
+                        if data:
+                            st.success(f"✅ {src}: ${data['price']:.2f} ({data['change_percent']:+.2f}%)")
+                        else:
+                            st.error(f"❌ Fallito: {src}")
 
-        if st.button("🏢 Test Finnhub company profile (AAPL)", use_container_width=True):
-            with st.spinner("Caricamento..."):
+        col_f3, col_f4 = st.columns(2)
+        with col_f3:
+            if st.button("🔍 Test ricerca Finnhub (bitcoin)", use_container_width=True):
+                with st.spinner("Ricerca..."):
+                    if not finnhub_key:
+                        st.error("❌ Chiave mancante")
+                    else:
+                        results = finnhub_provider.search_symbols("bitcoin", limit=5)
+                        if results:
+                            st.success(f"Trovati {len(results)} risultati")
+                            for r in results:
+                                st.write(f"- {r['symbol']}: {r['name']} ({r['type']})")
+                        else:
+                            st.warning("Nessun risultato")
+
+        with col_f4:
+            if st.button("🏢 Test Finnhub company profile (AAPL)", use_container_width=True):
+                with st.spinner("Caricamento..."):
+                    if not finnhub_key:
+                        st.error("❌ Chiave mancante")
+                    else:
+                        profile = finnhub_provider.get_company_profile("AAPL")
+                        if profile:
+                            st.json({
+                                "name": profile.get('name'),
+                                "industry": profile.get('finnhubIndustry'),
+                                "market_cap": f"${profile.get('marketCapitalization', 0):,.0f}M",
+                                "ipo": profile.get('ipo'),
+                                "logo": profile.get('logo')
+                            })
+                        else:
+                            st.warning("Profilo non trovato")
+
+        if st.button("📰 Test Finnhub news (AAPL)", use_container_width=True):
+            with st.spinner("Caricamento news..."):
                 if not finnhub_key:
                     st.error("❌ Chiave mancante")
                 else:
-                    profile = finnhub_provider.get_company_profile("AAPL")
-                    if profile:
-                        st.json({
-                            "name": profile.get('name'),
-                            "industry": profile.get('finnhubIndustry'),
-                            "market_cap": f"${profile.get('marketCapitalization', 0):,.0f}M",
-                            "ipo": profile.get('ipo'),
-                            "logo": profile.get('logo')
-                        })
+                    news = finnhub_provider.get_news("AAPL")
+                    if news:
+                        st.success(f"Trovate {len(news)} news")
+                        for n in news[:3]:
+                            st.markdown(f"**{n.get('headline')}**")
+                            st.caption(f"{n.get('source')} - {n.get('datetime')}")
                     else:
-                        st.warning("Profilo non trovato")
+                        st.warning("Nessuna news trovata")
 
     # ==================== TAB 2: INDICATORI & FILTRI ====================
     with tab2:
@@ -460,6 +497,3 @@ def render():
         if st.button("🛠️ Test convert_symbol_to_yfinance (BTC/USD)"):
             conv = convert_symbol_to_yfinance("BTC/USD")
             st.info(f"BTC/USD → {conv}")
-        if st.button("🛠️ Test convert_symbol_for_polygon (BTC-USD)"):
-            conv = convert_symbol_for_polygon("BTC-USD")
-            st.info(f"BTC-USD → {conv}")
