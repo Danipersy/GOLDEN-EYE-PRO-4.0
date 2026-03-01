@@ -3,9 +3,8 @@ from strategy.money_manager import render_money_manager_panel
 
 def render():
     """TAB 4: Money Management"""
-    if 'detail_data' in st.session_state:
+    if 'detail_data' in st.session_state and st.session_state.detail_data is not None:
         data = st.session_state.detail_data
-        # Usa score dal segnale se disponibile, altrimenti default 65
         signal_score = data.get('score', 65)
         render_money_manager_panel(
             data.get('p', 0),
@@ -13,4 +12,4 @@ def render():
             signal_score
         )
     else:
-        st.info("ℹ️ Carica prima un dettaglio asset")
+        st.info("ℹ️ Carica prima un dettaglio asset (vai su DETTAGLIO e seleziona un asset)")
