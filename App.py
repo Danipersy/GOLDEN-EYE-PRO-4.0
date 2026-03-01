@@ -8,7 +8,7 @@ sys.path.insert(0, str(current_dir))
 
 st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="collapsed")
 
-# Applica gli stili centralizzati
+# Applica gli stili centralizzati (per il resto dell'app)
 from ui_streamlit.styles import apply_styles
 apply_styles()
 
@@ -29,7 +29,7 @@ if 'last_scan_time' not in st.session_state:
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
 
-# Header
+# Header (usa classi definite in styles.py)
 now = datetime.now()
 weekday = now.weekday()
 hour = now.hour
@@ -56,23 +56,60 @@ header_html = f"""
 """
 st.markdown(header_html, unsafe_allow_html=True)
 
-# Menu
+# ==================== MENU PERSONALIZZATO CON LINK HTML ====================
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 
-st.markdown('<div class="menu-container">', unsafe_allow_html=True)
-cols = st.columns(len(menu_items))
-for i, item in enumerate(menu_items):
-    with cols[i]:
-        if st.button(item, use_container_width=True,
-                     type="primary" if st.session_state.current_page == item else "secondary",
-                     key=f"menu_{item}"):
-            st.session_state.current_page = item
-            st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
+# Costruisci i bottoni del menu manualmente
+menu_html = '<div style="display: flex; gap: 0.8rem; margin: 0 2rem 1.5rem 2rem;">'
+
+for item in menu_items:
+    active_class = "active" if st.session_state.current_page == item else ""
+    # Stile per il link attivo o normale
+    if active_class:
+        bg_color = "linear-gradient(145deg, #F0B90B, #D4A009)"
+        border = "none"
+        text_color = "#0B0E14"
+        font_weight = "700"
+        box_shadow = "0 4px 12px rgba(240, 185, 11, 0.3)"
+    else:
+        bg_color = "#14181F"
+        border = "1px solid #2A2F38"
+        text_color = "#E5E7EB"
+        font_weight = "600"
+        box_shadow = "none"
+
+    menu_html += f'''
+    <a href="?page={item}" style="
+        flex: 1;
+        background: {bg_color};
+        border: {border};
+        border-radius: 40px;
+        padding: 0.7rem 0;
+        color: {text_color};
+        font-weight: {font_weight};
+        font-size: 0.95rem;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        box-shadow: {box_shadow};
+        cursor: pointer;
+        display: inline-block;
+        font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    " onmouseover="this.style.background='{"#FBBF24" if active_class else "#1E242C"}'; this.style.borderColor='#F0B90B'; this.style.transform='translateY(-2px)';" 
+       onmouseout="this.style.background='{bg_color}'; this.style.borderColor='{"#2A2F38" if not active_class else "none"}'; this.style.transform='translateY(0)';">
+        {item}
+    </a>
+    '''
+
+menu_html += '</div>'
+
+st.markdown(menu_html, unsafe_allow_html=True)
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# Contenuto principale (invariato)
+# ==================== CONTENUTO PRINCIPALE ====================
 with st.container():
     try:
         if st.session_state.current_page == "SCAN":
@@ -111,7 +148,7 @@ with st.container():
     except Exception as e:
         st.error(f"Errore: {e}")
 
-# Footer
+# ==================== FOOTER ====================
 footer_html = f"""
 <div class="trader-footer">
     <span>📅 {now.strftime("%d/%m/%Y %H:%M:%S")}</span>
