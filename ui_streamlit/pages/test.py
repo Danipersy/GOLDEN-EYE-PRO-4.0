@@ -139,7 +139,7 @@ def render():
             converted = convert_symbol_for_twelvedata(test_sym)
             st.info(f"📌 {test_sym} → {converted}")
 
-                st.divider()
+        st.divider()
         st.subheader("Polygon.io")
         polygon_key = st.secrets.get("POLYGON_KEY", "") or st.session_state.get('polygon_key', '')
         if not polygon_key:
