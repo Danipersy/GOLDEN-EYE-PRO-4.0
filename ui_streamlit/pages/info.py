@@ -1,13 +1,10 @@
 # ui_streamlit/pages/info.py
 import streamlit as st
-from datetime import datetime
-from providers.multi_provider import _data_cache
 
 def render():
-    """Pagina INFO - Separata da App.py"""
-    
-    st.markdown("## ℹ️ INFO - Golden Eye Pro 2026")
-    st.caption("Statistiche di sistema e informazioni sull'app")
+    st.subheader("ℹ️ Informazioni sull'App")
+    st.markdown("""
+    **GOLDEN EYE PRO 4.0** è una piattaforma di trading intelligence progettata per fornire analisi multi-asset in tempo reale.
     
     # Layout a colonne
     col_info1, col_info2 = st.columns(2)
