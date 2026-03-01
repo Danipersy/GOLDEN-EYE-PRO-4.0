@@ -26,7 +26,8 @@ from ai.asset_analyzer import AssetAIAnalyzer
 from strategy.backtest import backtest_engine
 from strategy.money_manager import MoneyManager
 from strategy.auto_trader import AutoTrader
-from strategy.validator import validate_data_quality
+# ✅ CORRETTO: import da validation_panel
+from ui_streamlit.components.validation_panel import validate_data_quality
 
 # Utility
 from utils.helpers import get_market_status, normalize_ohlcv_df
