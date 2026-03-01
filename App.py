@@ -8,7 +8,7 @@ sys.path.insert(0, str(current_dir))
 
 st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="collapsed")
 
-# Applica gli stili centralizzati
+# Applica gli stili centralizzati (per il resto dell'app)
 from ui_streamlit.styles import apply_styles
 apply_styles()
 
@@ -64,19 +64,54 @@ header_html = f"""
 """
 st.markdown(header_html, unsafe_allow_html=True)
 
-# ==================== MENU CON LINK PERSONALIZZATI ====================
+# ==================== MENU CON LINK PERSONALIZZATI (STILE INLINE) ====================
 menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
 
 # Contenitore flessibile per i bottoni
-st.markdown('<div style="display: flex; gap: 0.8rem; margin: 0 2rem 1.5rem 2rem;">', unsafe_allow_html=True)
+menu_html = '<div style="display: flex; gap: 0.8rem; margin: 0 2rem 1.5rem 2rem;">'
 
 for item in menu_items:
-    active_class = "active" if st.session_state.current_page == item else ""
-    # Link con classe CSS
-    link_html = f'<a href="?page={item}" class="menu-button {active_class}">{item}</a>'
-    st.markdown(link_html, unsafe_allow_html=True)
+    active = (st.session_state.current_page == item)
+    if active:
+        bg = "linear-gradient(145deg, #F0B90B, #D4A009)"
+        border = "none"
+        color = "#0B0E14"
+        weight = "700"
+        shadow = "0 4px 12px rgba(240, 185, 11, 0.3)"
+    else:
+        bg = "#14181F"
+        border = "1px solid #2A2F38"
+        color = "#E5E7EB"
+        weight = "600"
+        shadow = "none"
 
-st.markdown('</div>', unsafe_allow_html=True)
+    menu_html += f'''
+    <a href="?page={item}" style="
+        flex: 1;
+        background: {bg};
+        border: {border};
+        border-radius: 40px;
+        padding: 0.7rem 0;
+        color: {color};
+        font-weight: {weight};
+        font-size: 0.95rem;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        box-shadow: {shadow};
+        cursor: pointer;
+        display: inline-block;
+        font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    " onmouseover="this.style.background='#1E242C'; this.style.borderColor='#F0B90B'; this.style.transform='translateY(-2px)';"
+       onmouseout="this.style.background='{bg}'; this.style.borderColor='{'#2A2F38' if not active else 'none'}'; this.style.transform='translateY(0)';">
+        {item}
+    </a>
+    '''
+
+menu_html += '</div>'
+st.markdown(menu_html, unsafe_allow_html=True)
 st.markdown("<hr>", unsafe_allow_html=True)
 
 # ==================== CONTENUTO PRINCIPALE ====================
