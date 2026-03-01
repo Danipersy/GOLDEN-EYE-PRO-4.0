@@ -123,3 +123,21 @@ def safe_last(df: pd.DataFrame, col: str, default=None):
         return default
     v = df[col].iloc[-1]
     return float(v) if pd.notna(v) else default
+    
+def convert_symbol_for_polygon(symbol: str) -> str:
+    """Converte simboli generici in formato Polygon.
+    Esempi:
+    - BTC-USD → X:BTCUSD
+    - AAPL → AAPL
+    - EUR/USD → C:EURUSD (per forex)
+    """
+    s = symbol.upper().strip()
+    if ':' in s:
+        return s
+    if '-' in s and s.endswith('USD'):
+        base = s[:-4]
+        return f"X:{base}USD"
+    if '/' in s:
+        base, quote = s.split('/')
+        return f"C:{base}{quote}"
+    return s
