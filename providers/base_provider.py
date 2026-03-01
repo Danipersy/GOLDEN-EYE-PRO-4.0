@@ -1,6 +1,5 @@
 # providers/base_provider.py
 import streamlit as st
-import json
 import os
 import pickle
 import hashlib
@@ -11,6 +10,11 @@ class APIUsageTracker:
     """Traccia l'utilizzo delle API con supporto per tutti i provider"""
     
     def __init__(self):
+        # L'inizializzazione effettiva avviene al primo accesso
+        self._ensure_initialized()
+    
+    def _ensure_initialized(self):
+        """Inizializza le strutture dati in session_state se non esistono"""
         if 'api_usage' not in st.session_state:
             st.session_state.api_usage = {
                 'twelvedata': {
@@ -52,6 +56,7 @@ class APIUsageTracker:
     
     def _check_reset(self, provider):
         """Resetta il contatore giornaliero se necessario"""
+        self._ensure_initialized()  # Sicurezza extra
         today = date.today()
         
         last_reset_str = st.session_state.api_usage[provider]['last_reset']
@@ -66,6 +71,8 @@ class APIUsageTracker:
     
     def increment(self, provider, endpoint="", symbol=""):
         """Incrementa contatore per un provider con log dettagliato"""
+        self._ensure_initialized()
+        
         if provider not in st.session_state.api_usage:
             return
         
@@ -86,11 +93,13 @@ class APIUsageTracker:
     
     def get_usage(self, provider):
         """Ottieni utilizzo per provider"""
+        self._ensure_initialized()
         self._check_reset(provider)
         return st.session_state.api_usage[provider]
     
     def get_all_usage(self):
         """Ottieni tutti gli utilizzi"""
+        self._ensure_initialized()
         for provider in st.session_state.api_usage:
             self._check_reset(provider)
         return st.session_state.api_usage
@@ -127,6 +136,7 @@ class APIUsageTracker:
     
     def get_today_total(self):
         """Totale chiamate oggi"""
+        self._ensure_initialized()
         total = 0
         for provider in st.session_state.api_usage:
             self._check_reset(provider)
@@ -135,6 +145,7 @@ class APIUsageTracker:
     
     def get_provider_stats(self):
         """Statistiche per provider"""
+        self._ensure_initialized()
         stats = []
         for provider, data in self.get_all_usage().items():
             limits = self.get_limits(provider)
