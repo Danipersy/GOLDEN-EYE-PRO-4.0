@@ -4,8 +4,43 @@ import plotly.graph_objects as go
 from datetime import datetime
 from providers.twelvedata_provider import fetch_td_15m, fetch_td_1h, fetch_td_4h
 from providers.marketaux_provider import fetch_marketaux_sentiment
+from providers.finnhub_provider import finnhub_provider
 from indicators.robust_ta import compute_indicators_15m, decide_signal
 from ai.asset_analyzer import render_ai_suggestions
+
+def get_combined_news(symbol):
+    """Combina news da Marketaux e Finnhub"""
+    news_data = {'count': 0, 'sentiment': 0.5, 'label': '⚪ NEUTRO', 'sources': []}
+    
+    # Marketaux
+    try:
+        marketaux = fetch_marketaux_sentiment([symbol])
+        if marketaux and marketaux.get('count', 0) > 0:
+            news_data['count'] += marketaux['count']
+            news_data['sentiment'] = (news_data['sentiment'] + marketaux.get('sentiment', 0.5)) / 2
+            news_data['sources'].append('Marketaux')
+    except:
+        pass
+    
+    # Finnhub
+    try:
+        finnhub_sent = finnhub_provider.get_news_sentiment(symbol)
+        if finnhub_sent and finnhub_sent.get('mentions', 0) > 0:
+            news_data['count'] += finnhub_sent['mentions']
+            news_data['sentiment'] = (news_data['sentiment'] + finnhub_sent['sentiment']) / 2
+            news_data['sources'].append('Finnhub')
+    except:
+        pass
+    
+    # Determina label
+    if news_data['sentiment'] > 0.6:
+        news_data['label'] = '🟢 POSITIVO'
+    elif news_data['sentiment'] < 0.4:
+        news_data['label'] = '🔴 NEGATIVO'
+    else:
+        news_data['label'] = '🟡 NEUTRO'
+    
+    return news_data
 
 def show_page(symbol=None):
     if symbol is None:
@@ -100,29 +135,34 @@ def show_page(symbol=None):
             )
             st.plotly_chart(fig, use_container_width=True)
             
-            # News e AI
-            col_n1, col_n2 = st.columns(2)
-            with col_n1:
-                st.subheader("📰 News Sentiment")
-                news = fetch_marketaux_sentiment([symbol])
-                if news and news.get('count', 0) > 0:
-                    st.info(f"📊 {news.get('count')} news - Sentiment: {news.get('label', 'N/A')}")
-                else:
-                    st.caption("Nessuna news recente")
-            with col_n2:
-                st.subheader("🤖 AI Analisi")
-                data_for_ai = {
-                    'p': current_price,
-                    'rsi': signal['rsi'],
-                    'adx': signal['adx'],
-                    'atr': signal['atr'],
-                    'sqz_on': signal['sqz_on'],
-                    'v': signal['signal'],
-                    'level': 5 if signal['strength'] == 'STRONG' else 4 if signal['strength'] == 'WEAK' else 3,
-                    'mtf_long': mtf_long,
-                    'mtf_short': mtf_short
-                }
-                render_ai_suggestions(symbol, data_for_ai, news)
+            # News multi-provider
+            st.subheader("📰 News & Sentiment")
+            news = get_combined_news(symbol)
+            if news['count'] > 0:
+                col_n1, col_n2 = st.columns([1, 1])
+                with col_n1:
+                    st.info(f"📊 {news['count']} news da {', '.join(news['sources'])}")
+                with col_n2:
+                    st.metric("Sentiment", news['label'])
+                if news['sentiment']:
+                    st.progress(news['sentiment'], text=f"Sentiment score: {news['sentiment']:.2f}")
+            else:
+                st.caption("Nessuna news recente")
+            
+            # AI Analisi
+            st.subheader("🤖 AI Analisi")
+            data_for_ai = {
+                'p': current_price,
+                'rsi': signal['rsi'],
+                'adx': signal['adx'],
+                'atr': signal['atr'],
+                'sqz_on': signal['sqz_on'],
+                'v': signal['signal'],
+                'level': 5 if signal['strength'] == 'STRONG' else 4 if signal['strength'] == 'WEAK' else 3,
+                'mtf_long': mtf_long,
+                'mtf_short': mtf_short
+            }
+            render_ai_suggestions(symbol, data_for_ai, news)
             
             # SL/TP
             st.subheader("💰 Risk Management")
@@ -139,7 +179,7 @@ def show_page(symbol=None):
                 rr = reward / risk if risk > 0 else 0
                 st.metric("📊 Risk/Reward", f"1:{rr:.2f}", border=True)
             
-            # Salva i dati in session_state per le altre pagine (incluso il simbolo)
+            # Salva i dati in session_state per le altre pagine
             st.session_state.detail_data = {
                 'symbol': symbol,
                 'p': current_price,
