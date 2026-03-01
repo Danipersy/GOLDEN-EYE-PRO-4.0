@@ -14,7 +14,8 @@ from providers.twelvedata_provider import (
 )
 from providers.marketaux_provider import fetch_marketaux_sentiment
 from providers.base_provider import tracker
-from providers.telegram_provider import send_telegram_alert, format_signal_alert
+from providers.telegram_provider import send_telegram_alert
+from providers.polygon_provider import polygon_provider
 
 # Indicatori
 from indicators.robust_ta import compute_indicators_15m, decide_signal
@@ -29,7 +30,7 @@ from strategy.auto_trader import AutoTrader
 from ui_streamlit.components.validation_panel import validate_data_quality
 
 # Utility
-from utils.helpers import get_market_status, normalize_ohlcv_df
+from utils.helpers import get_market_status, normalize_ohlcv_df, convert_symbol_to_yfinance
 from storage.watchlist_store import load_watchlist, save_watchlist
 from ui_streamlit.components.card import render_result_card
 from ui_streamlit.components.scan_filters import render_scan_filters
@@ -90,21 +91,21 @@ def render():
                 if df is not None:
                     st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
                 else:
-                    st.error(f"❌ {src}")
+                    st.error(f"❌ Fallito: {src}")
 
             if st.button("🔵 Test BTC/USD (1h)", use_container_width=True):
                 df, src = fetch_td_1h("BTC/USD")
                 if df is not None:
                     st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
                 else:
-                    st.error(f"❌ {src}")
+                    st.error(f"❌ Fallito: {src}")
 
             if st.button("🔵 Test BTC/USD (4h)", use_container_width=True):
                 df, src = fetch_td_4h("BTC/USD")
                 if df is not None:
                     st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
                 else:
-                    st.error(f"❌ {src}")
+                    st.error(f"❌ Fallito: {src}")
 
         st.divider()
 
@@ -119,7 +120,7 @@ def render():
                     st.warning("⚠️ Nessuna news o chiave non valida")
 
         with col_d:
-            st.subheader("Ricerca simboli")
+            st.subheader("Ricerca simboli TwelveData")
             search_q = st.text_input("Cerca (min 3 caratteri)", value="bitcoin", key="search_td_simple")
             if len(search_q) >= 3:
                 with st.spinner("Ricerca..."):
@@ -130,47 +131,59 @@ def render():
                         st.caption(f"• {r['label']}")
                 else:
                     st.warning("Nessun risultato")
-# ... (inizio invariato fino alla fine del tab1)
 
-        st.divider()
-        st.subheader("Polygon.io")
-        if st.button("🟠 Test Polygon (BTC-USD)", use_container_width=True):
-            from providers.polygon_provider import polygon_provider
-            with st.spinner("Caricamento..."):
-                # Adatta simbolo per Polygon
-                poly_symbol = "X:BTCUSD"
-                df, src = polygon_provider.fetch_aggregates(poly_symbol, timespan='minute', multiplier=15, limit=100)
-                if df is not None:
-                    st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
-                else:
-                    st.error(f"❌ Fallito: {src}")
-
-        if st.button("🟠 Test Polygon (AAPL)", use_container_width=True):
-            from providers.polygon_provider import polygon_provider
-            with st.spinner("Caricamento..."):
-                df, src = polygon_provider.fetch_aggregates("AAPL", timespan='minute', multiplier=15, limit=100)
-                if df is not None:
-                    st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
-                else:
-                    st.error(f"❌ Fallito: {src}")
-
-        if st.button("🟠 Test ricerca Polygon (bitcoin)", use_container_width=True):
-            from providers.polygon_provider import polygon_provider
-            results = polygon_provider.search_symbols("bitcoin", limit=5)
-            if results:
-                st.success(f"Trovati {len(results)} risultati")
-                for r in results:
-                    st.write(f"- {r['symbol']}: {r['name']}")
-            else:
-                st.warning("Nessun risultato o chiave non valida")
-
-# ... (resto invariato)
         st.divider()
         st.subheader("Conversione simboli")
         test_sym = st.text_input("Simbolo da convertire", value="BTC-USD", key="conv_sym_advanced")
         if st.button("🔄 Converti", use_container_width=True):
             converted = convert_symbol_for_twelvedata(test_sym)
             st.info(f"📌 {test_sym} → {converted}")
+
+        st.divider()
+        st.subheader("Polygon.io")
+        # Verifica presenza chiave
+        polygon_key = st.secrets.get("POLYGON_KEY", "") or st.session_state.get('polygon_key', '')
+        if not polygon_key:
+            st.warning("⚠️ Chiave Polygon non trovata. Aggiungila in Configurazione o nei secrets.")
+
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            if st.button("🟠 Test Polygon (BTC-USD)", use_container_width=True):
+                with st.spinner("Caricamento..."):
+                    if not polygon_key:
+                        st.error("❌ Chiave mancante")
+                    else:
+                        poly_symbol = "X:BTCUSD"
+                        df, src = polygon_provider.fetch_aggregates(poly_symbol, timespan='minute', multiplier=15, limit=100)
+                        if df is not None:
+                            st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
+                        else:
+                            st.error(f"❌ Fallito: {src}. Verifica chiave o simbolo.")
+
+            if st.button("🟠 Test Polygon (AAPL)", use_container_width=True):
+                with st.spinner("Caricamento..."):
+                    if not polygon_key:
+                        st.error("❌ Chiave mancante")
+                    else:
+                        df, src = polygon_provider.fetch_aggregates("AAPL", timespan='minute', multiplier=15, limit=100)
+                        if df is not None:
+                            st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
+                        else:
+                            st.error(f"❌ Fallito: {src}. Verifica chiave o simbolo.")
+
+        with col_p2:
+            if st.button("🟠 Test ricerca Polygon (bitcoin)", use_container_width=True):
+                with st.spinner("Ricerca..."):
+                    if not polygon_key:
+                        st.error("❌ Chiave mancante")
+                    else:
+                        results = polygon_provider.search_symbols("bitcoin", limit=5)
+                        if results:
+                            st.success(f"Trovati {len(results)} risultati")
+                            for r in results:
+                                st.write(f"- {r['symbol']}: {r['name']}")
+                        else:
+                            st.warning("Nessun risultato o chiave non valida")
 
     # ==================== TAB 2: INDICATORI & FILTRI ====================
     with tab2:
@@ -262,11 +275,8 @@ def render():
         st.divider()
         st.subheader("AutoTrader (simulazione)")
         if st.button("▶️ Avvia simulazione AutoTrader (5 trade)", use_container_width=True):
-            # Usa l'istanza in session_state se esiste
             if 'test_auto_trader' not in st.session_state:
                 st.session_state.test_auto_trader = AutoTrader()
-            bot = st.session_state.test_auto_trader
-            # Simula 5 trade (non eseguiamo scan reali, solo finti)
             trades = []
             capital = 10000
             for i in range(5):
@@ -340,12 +350,11 @@ def render():
                 else:
                     st.error("Dati non disponibili")
 
-    # ==================== TAB 5: MONEY MANAGER (con persistenza) ====================
+    # ==================== TAB 5: MONEY MANAGER ====================
     with tab5:
         st.subheader("Money Manager interattivo")
         st.caption("I pulsanti aggiornano il capitale in tempo reale (salvato in sessione).")
 
-        # Inizializza il money manager in session state se non esiste
         if 'test_money_manager' not in st.session_state:
             st.session_state.test_money_manager = MoneyManager(initial_capital=10000)
 
@@ -423,18 +432,10 @@ def render():
                 st.error(f"Fallito in {elapsed:.2f}s")
 
         st.divider()
-        st.subheader("Test ottimizzazione (solo UI)")
-        if st.button("🔄 Mostra pannello ottimizzazione finto"):
-            st.info("Qui potrebbe apparire il pannello di ottimizzazione. (UI test)")
-            # Potremmo richiamare render_optimizer_panel ma richiede un asset selezionato
-            # Per semplicità, mostriamo solo un messaggio.
-
-        st.divider()
         st.subheader("Test helpers")
         if st.button("🛠️ Test get_market_status"):
             status = get_market_status("BTC-USD")
             st.json(status)
         if st.button("🛠️ Test convert_symbol_to_yfinance (BTC/USD)"):
-            from utils.helpers import convert_symbol_to_yfinance
             conv = convert_symbol_to_yfinance("BTC/USD")
             st.info(f"BTC/USD → {conv}")
