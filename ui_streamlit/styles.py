@@ -11,12 +11,21 @@ def apply_styles():
         background: #0B0E14;
     }
 
-    /* Nascondi sidebar e header di default */
-    section[data-testid="stSidebar"], header[data-testid="stHeader"] {
+    /* Sidebar personalizzata */
+    section[data-testid="stSidebar"] {
+        background: #14181F !important;
+        border-right: 1px solid #2A2F38;
+    }
+    section[data-testid="stSidebar"] .stButton button {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Nascondi header di default */
+    header[data-testid="stHeader"] {
         display: none !important;
     }
 
-    /* Bottoni globali - stile uniforme */
+    /* Bottoni globali */
     .stButton button {
         border-radius: 40px !important;
         padding: 0.5rem 1rem !important;
@@ -26,6 +35,7 @@ def apply_styles():
         background: #14181F !important;
         color: #E5E7EB !important;
         box-shadow: none !important;
+        font-size: 0.9rem;
     }
 
     .stButton button:hover {
@@ -46,7 +56,7 @@ def apply_styles():
         box-shadow: 0 6px 14px rgba(240, 185, 11, 0.4) !important;
     }
 
-    /* Header personalizzato */
+    /* Header */
     .trader-header {
         display: flex;
         justify-content: space-between;
@@ -58,6 +68,7 @@ def apply_styles():
         margin: 1rem 2rem 1.5rem 2rem;
         border: 1px solid rgba(240, 185, 11, 0.25);
         box-shadow: 0 15px 30px -15px rgba(0,0,0,0.7);
+        flex-wrap: wrap;
     }
 
     .logo {
@@ -77,6 +88,7 @@ def apply_styles():
         color: #9CA3AF;
         font-size: 0.9rem;
         font-weight: 500;
+        flex-wrap: wrap;
     }
 
     .info-item {
@@ -119,12 +131,14 @@ def apply_styles():
         padding: 0.5rem;
         border-radius: 40px;
         border: 1px solid #2A2F38;
+        flex-wrap: wrap;
     }
     .stTabs [data-baseweb="tab"] {
         border-radius: 30px;
         padding: 0.5rem 1.5rem;
         color: #9CA3AF;
         font-weight: 600;
+        font-size: 0.9rem;
     }
     .stTabs [aria-selected="true"] {
         background: #F0B90B !important;
@@ -149,6 +163,8 @@ def apply_styles():
         font-size: 0.85rem;
         display: flex;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
 
     /* Badge per le card */
@@ -157,5 +173,33 @@ def apply_styles():
     .badge-l3 { background: #3B82F6; color: white; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
     .badge-l2 { background: #8B5CF6; color: white; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
     .badge-l1 { background: #6B7280; color: white; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
+
+    /* Responsive per mobile */
+    @media (max-width: 768px) {
+        .trader-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+        }
+        .market-info {
+            gap: 1rem;
+        }
+        .menu-container {
+            flex-wrap: wrap;
+        }
+        .stButton button {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem !important;
+        }
+        div[data-testid="stMetric"] {
+            padding: 0.5rem;
+        }
+        .trader-footer {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+    }
 </style>
     """, unsafe_allow_html=True)
