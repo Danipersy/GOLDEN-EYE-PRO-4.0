@@ -139,56 +139,72 @@ def render():
             converted = convert_symbol_for_twelvedata(test_sym)
             st.info(f"📌 {test_sym} → {converted}")
 
-        st.divider()
-        st.subheader("Polygon.io")
-        polygon_key = st.secrets.get("POLYGON_KEY", "") or st.session_state.get('polygon_key', '')
-        if not polygon_key:
-            st.warning("⚠️ Chiave Polygon non trovata. Aggiungila in Configurazione o nei secrets.")
+                st.divider()
+        st.subheader("Finnhub.io (Real-time)")
+        finnhub_key = st.secrets.get("FINNHUB_KEY", "") or st.session_state.get('finnhub_key', '')
+        if not finnhub_key:
+            st.warning("⚠️ Chiave Finnhub non trovata. Aggiungila in Configurazione o nei secrets.")
         else:
-            st.caption(f"Chiave presente: {polygon_key[:4]}...{polygon_key[-4:]}")
+            st.caption(f"Chiave presente: {finnhub_key[:4]}...{finnhub_key[-4:]}")
 
-        from utils.helpers import convert_symbol_for_polygon
+        from providers.finnhub_provider import finnhub_provider
 
-        col_p1, col_p2 = st.columns(2)
-        with col_p1:
-            if st.button("🟠 Test Polygon (BTC-USD)", use_container_width=True):
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            if st.button("📈 Test Finnhub (AAPL quote)", use_container_width=True):
                 with st.spinner("Caricamento..."):
-                    if not polygon_key:
+                    if not finnhub_key:
                         st.error("❌ Chiave mancante")
                     else:
-                        poly_symbol = convert_symbol_for_polygon("BTC-USD")
-                        df, src = polygon_provider.fetch_aggregates(poly_symbol, timespan='minute', multiplier=15, limit=100)
-                        if df is not None:
-                            st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
+                        data, src = finnhub_provider.get_quote("AAPL")
+                        if data:
+                            st.success(f"✅ {src}: ${data['price']:.2f} ({data['change_percent']:+.2f}%)")
+                            st.caption(f"Volume: {data['volume']:,} | High: ${data['high']:.2f} | Low: ${data['low']:.2f}")
                         else:
-                            st.error(f"❌ Fallito: {src} (simbolo convertito: {poly_symbol})")
-                            st.info("💡 Suggerimenti: verifica che la chiave sia valida e che il tuo piano supporti gli aggregates. Il piano gratuito potrebbe non includere dati intraday.")
+                            st.error(f"❌ Fallito: {src}")
 
-            if st.button("🟠 Test Polygon (AAPL)", use_container_width=True):
+        with col_f2:
+            if st.button("🪙 Test Finnhub (BTC-USD crypto)", use_container_width=True):
                 with st.spinner("Caricamento..."):
-                    if not polygon_key:
+                    if not finnhub_key:
                         st.error("❌ Chiave mancante")
                     else:
-                        poly_symbol = convert_symbol_for_polygon("AAPL")
-                        df, src = polygon_provider.fetch_aggregates(poly_symbol, timespan='minute', multiplier=15, limit=100)
-                        if df is not None:
-                            st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
+                        data, src = finnhub_provider.get_crypto_quote("BTC-USD")
+                        if data:
+                            st.success(f"✅ {src}: ${data['price']:.2f} ({data['change_percent']:+.2f}%)")
+                            st.caption(f"Volume: {data['volume']:,} | 24h High: ${data['high']:.2f} | Low: ${data['low']:.2f}")
                         else:
-                            st.error(f"❌ Fallito: {src} (simbolo convertito: {poly_symbol})")
+                            st.error(f"❌ Fallito: {src}")
 
-        with col_p2:
-            if st.button("🟠 Test ricerca Polygon (bitcoin)", use_container_width=True):
-                with st.spinner("Ricerca..."):
-                    if not polygon_key:
-                        st.error("❌ Chiave mancante")
+        if st.button("🔍 Test ricerca Finnhub (bitcoin)", use_container_width=True):
+            with st.spinner("Ricerca..."):
+                if not finnhub_key:
+                    st.error("❌ Chiave mancante")
+                else:
+                    results = finnhub_provider.search_symbols("bitcoin", limit=5)
+                    if results:
+                        st.success(f"Trovati {len(results)} risultati")
+                        for r in results:
+                            st.write(f"- {r['symbol']}: {r['name']} ({r['type']})")
                     else:
-                        results = polygon_provider.search_symbols("bitcoin", limit=5)
-                        if results:
-                            st.success(f"Trovati {len(results)} risultati")
-                            for r in results:
-                                st.write(f"- {r['symbol']}: {r['name']}")
-                        else:
-                            st.warning("Nessun risultato o chiave non valida")
+                        st.warning("Nessun risultato")
+
+        if st.button("🏢 Test Finnhub company profile (AAPL)", use_container_width=True):
+            with st.spinner("Caricamento..."):
+                if not finnhub_key:
+                    st.error("❌ Chiave mancante")
+                else:
+                    profile = finnhub_provider.get_company_profile("AAPL")
+                    if profile:
+                        st.json({
+                            "name": profile.get('name'),
+                            "industry": profile.get('finnhubIndustry'),
+                            "market_cap": f"${profile.get('marketCapitalization', 0):,.0f}M",
+                            "ipo": profile.get('ipo'),
+                            "logo": profile.get('logo')
+                        })
+                    else:
+                        st.warning("Profilo non trovato")
 
     # ==================== TAB 2: INDICATORI & FILTRI ====================
     with tab2:
