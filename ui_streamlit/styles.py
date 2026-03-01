@@ -62,49 +62,58 @@ def apply_styles():
     .info-item .value.green { color: #10B981; }
     .info-item .value.red { color: #EF4444; }
 
-    /* Menu container - selettori basati su data-testid */
-    .menu-container div[data-testid="column"] button[data-testid="stBaseButton-secondary"] {
-        background: rgba(30, 36, 44, 0.6) !important;
-        backdrop-filter: blur(4px) !important;
-        border: 1px solid rgba(240, 185, 11, 0.3) !important;
-        border-radius: 40px !important;
+    /* Menu container - stile come i bottoni di dettaglio */
+    .menu-container {
+        display: flex;
+        gap: 0.8rem;
+        margin: 0 2rem 1.5rem 2rem;
+    }
+
+    .menu-container div[data-testid="column"] {
+        padding: 0 !important;
+    }
+
+    .menu-container div[data-testid="column"] div[data-testid="stButton"] {
+        width: 100%;
+    }
+
+    .menu-container div[data-testid="column"] button {
+        background: #14181F !important;
+        border: 1px solid #2A2F38 !important;
+        border-radius: 16px !important;
         color: #E5E7EB !important;
         font-weight: 600 !important;
         font-size: 0.95rem !important;
         padding: 0.7rem 0 !important;
-        transition: all 0.25s ease !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        transition: all 0.2s ease !important;
         width: 100%;
+        cursor: pointer;
+        line-height: 1.2;
+        min-height: unset;
+        box-shadow: none !important;
     }
 
-    .menu-container div[data-testid="column"] button[data-testid="stBaseButton-secondary"]:hover {
-        background: rgba(45, 55, 68, 0.8) !important;
+    .menu-container div[data-testid="column"] button:hover {
+        background: #1E242C !important;
         border-color: #F0B90B !important;
         color: white !important;
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 12px 24px -8px rgba(240, 185, 11, 0.4) !important;
+        transform: translateY(-2px);
     }
 
+    .menu-container div[data-testid="column"] button[kind="primary"],
     .menu-container div[data-testid="column"] button[data-testid="stBaseButton-primary"] {
         background: linear-gradient(145deg, #F0B90B, #D4A009) !important;
         border: none !important;
         color: #0B0E14 !important;
         font-weight: 700 !important;
-        box-shadow: 0 6px 14px rgba(240, 185, 11, 0.3) !important;
-        border-radius: 40px !important;
-        padding: 0.7rem 0 !important;
-        font-size: 0.95rem !important;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        width: 100%;
+        box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3) !important;
     }
 
+    .menu-container div[data-testid="column"] button[kind="primary"]:hover,
     .menu-container div[data-testid="column"] button[data-testid="stBaseButton-primary"]:hover {
         background: linear-gradient(145deg, #FBBF24, #F0B90B) !important;
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 15px 30px -8px #F0B90B !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(240, 185, 11, 0.4) !important;
     }
 
     /* Divider personalizzato */
@@ -127,17 +136,16 @@ def apply_styles():
         justify-content: space-between;
     }
 
-    /* Metriche personalizzate */
+    /* Metriche personalizzate - come nello screenshot */
     div[data-testid="stMetric"] {
         background: #14181F;
-        border-radius: 24px;
+        border-radius: 16px;
         padding: 1rem;
         border: 1px solid #2A2F38;
         transition: all 0.2s;
     }
     div[data-testid="stMetric"]:hover {
         border-color: #F0B90B;
-        box-shadow: 0 0 0 1px #F0B90B20;
     }
     div[data-testid="stMetric"] label {
         color: #9CA3AF !important;
