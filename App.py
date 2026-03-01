@@ -6,7 +6,7 @@ from pathlib import Path
 current_dir = Path(__file__).parent.absolute()
 sys.path.insert(0, str(current_dir))
 
-st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="GOLDEN EYE PRO 4.0", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
 
 # Applica gli stili centralizzati
 from ui_streamlit.styles import apply_styles
@@ -37,7 +37,7 @@ if "asset" in query_params:
     st.session_state.selected_asset = query_params["asset"]
     st.session_state.radar_select = query_params["asset"]
 
-# Header
+# Header (sempre visibile)
 now = datetime.now()
 weekday = now.weekday()
 hour = now.hour
@@ -64,10 +64,11 @@ header_html = f"""
 """
 st.markdown(header_html, unsafe_allow_html=True)
 
-# Menu con bottoni Streamlit (stile uniforme)
-menu_items = ["SCAN", "DETTAGLIO", "WATCHLIST", "STRUMENTI", "TRADING", "API"]
-cols = st.columns(len(menu_items))
-for i, item in enumerate(menu_items):
+# Menu principale ridotto (solo le voci principali)
+st.markdown("### Navigazione principale")
+menu_main = ["SCAN", "DETTAGLIO", "WATCHLIST"]
+cols = st.columns(len(menu_main))
+for i, item in enumerate(menu_main):
     with cols[i]:
         if st.button(item, use_container_width=True,
                      type="primary" if st.session_state.current_page == item else "secondary",
@@ -76,6 +77,41 @@ for i, item in enumerate(menu_items):
             st.rerun()
 
 st.markdown("<hr>", unsafe_allow_html=True)
+
+# Sidebar con le altre voci
+with st.sidebar:
+    st.markdown("### Strumenti")
+    if st.button("🛠️ STRUMENTI", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "STRUMENTI" else "secondary"):
+        st.session_state.current_page = "STRUMENTI"
+        st.rerun()
+    
+    if st.button("🤖 TRADING", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "TRADING" else "secondary"):
+        st.session_state.current_page = "TRADING"
+        st.rerun()
+    
+    if st.button("📡 API", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "API" else "secondary"):
+        st.session_state.current_page = "API"
+        st.rerun()
+    
+    st.markdown("### Informazioni")
+    if st.button("ℹ️ INFO", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "INFO" else "secondary"):
+        st.session_state.current_page = "INFO"
+        st.rerun()
+    
+    if st.button("🧪 TEST", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "TEST" else "secondary"):
+        st.session_state.current_page = "TEST"
+        st.rerun()
+    
+    st.markdown("---")
+    st.caption(f"Watchlist: {len(st.session_state.watchlist)} asset")
+    if st.button("🔄 Svuota cache", use_container_width=True):
+        st.cache_data.clear()
+        st.success("Cache svuotata!")
 
 # Contenuto principale
 with st.container():
@@ -112,6 +148,12 @@ with st.container():
                 render()
         elif st.session_state.current_page == "API":
             from ui_streamlit.pages.api_dashboard import render
+            render()
+        elif st.session_state.current_page == "INFO":
+            from ui_streamlit.pages.info import render
+            render()
+        elif st.session_state.current_page == "TEST":
+            from ui_streamlit.pages.test import render
             render()
     except Exception as e:
         st.error(f"Errore: {e}")
