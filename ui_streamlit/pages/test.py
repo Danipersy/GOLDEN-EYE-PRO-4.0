@@ -139,7 +139,7 @@ def render():
             converted = convert_symbol_for_twelvedata(test_sym)
             st.info(f"📌 {test_sym} → {converted}")
 
-                st.divider()
+        st.divider()
         st.subheader("Finnhub.io (Real-time)")
         finnhub_key = st.secrets.get("FINNHUB_KEY", "") or st.session_state.get('finnhub_key', '')
         if not finnhub_key:
