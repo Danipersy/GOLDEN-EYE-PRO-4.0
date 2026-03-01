@@ -1,6 +1,8 @@
 import streamlit as st
 
 def render_scan_filters():
+    """Filtri a 5 livelli con componenti Streamlit"""
+    # Inizializzazione valori di default
     defaults = {
         'filter_min_confidence': 1,
         'filter_show_neutral': True,
@@ -10,24 +12,14 @@ def render_scan_filters():
         'filter_show_strong': True,
         'filter_min_score': 0
     }
-    for k, v in defaults.items():
-        if k not in st.session_state:
-            st.session_state[k] = v
+
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
     with st.expander("🔧 Filtri Avanzati", expanded=False):
-        st.slider("Livello minimo", 1, 5, key="filter_min_confidence", format="L%d")
-        st.slider("Score minimo", 0, 100, key="filter_min_score")
-        st.divider()
-        col1, col2 = st.columns(2)
-        with col1:
-            st.checkbox("⚪ Laterale (L1)", key="filter_show_neutral")
-            st.checkbox("📈 Tendenza (L2)", key="filter_show_trend")
-            st.checkbox("📊 Momentum (L3)", key="filter_show_momentum")
-        with col2:
-            st.checkbox("🟡 Medio (L4)", key="filter_show_medium")
-            st.checkbox("🔥 Forte (L5)", key="filter_show_strong")
-        st.divider()
-        st.caption("Preset rapidi:")
+        # ===== PRESET RAPIDI (PRIMA DEGLI SLIDER) =====
+        st.markdown("#### ⚡ Preset rapidi")
         cols = st.columns(4)
         with cols[0]:
             if st.button("📊 Tutti", use_container_width=True):
@@ -49,6 +41,22 @@ def render_scan_filters():
                 st.session_state.filter_min_confidence = 5
                 st.session_state.filter_min_score = 70
                 st.rerun()
+
+        st.divider()
+
+        # ===== SLIDER E CHECKBOX =====
+        st.slider("Livello minimo", 1, 5, key="filter_min_confidence", format="L%d")
+        st.slider("Score minimo", 0, 100, key="filter_min_score")
+
+        st.divider()
+        col1, col2 = st.columns(2)
+        with col1:
+            st.checkbox("⚪ Laterale (L1)", key="filter_show_neutral")
+            st.checkbox("📈 Tendenza (L2)", key="filter_show_trend")
+            st.checkbox("📊 Momentum (L3)", key="filter_show_momentum")
+        with col2:
+            st.checkbox("🟡 Medio (L4)", key="filter_show_medium")
+            st.checkbox("🔥 Forte (L5)", key="filter_show_strong")
 
     return {
         "min_confidence": st.session_state.filter_min_confidence,
