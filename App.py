@@ -28,6 +28,12 @@ if 'last_scan_time' not in st.session_state:
     st.session_state.last_scan_time = None
 if 'scan_results' not in st.session_state:
     st.session_state.scan_results = None
+if 'debug_mode' not in st.session_state:
+    st.session_state.debug_mode = False
+if 'app_start_time' not in st.session_state:
+    st.session_state.app_start_time = datetime.now()
+if 'detail_data' not in st.session_state:
+    st.session_state.detail_data = None
 
 # Legge i parametri URL per la navigazione
 query_params = st.query_params
@@ -37,7 +43,52 @@ if "asset" in query_params:
     st.session_state.selected_asset = query_params["asset"]
     st.session_state.radar_select = query_params["asset"]
 
-# Header (sempre visibile)
+# ==================== SIDEBAR ====================
+with st.sidebar:
+    st.markdown("### 🛠️ Strumenti")
+    if st.button("📊 STRUMENTI", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "STRUMENTI" else "secondary",
+                 key="sidebar_strumenti"):
+        st.session_state.current_page = "STRUMENTI"
+        st.rerun()
+    
+    if st.button("🤖 TRADING", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "TRADING" else "secondary",
+                 key="sidebar_trading"):
+        st.session_state.current_page = "TRADING"
+        st.rerun()
+    
+    if st.button("📡 API", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "API" else "secondary",
+                 key="sidebar_api"):
+        st.session_state.current_page = "API"
+        st.rerun()
+    
+    st.markdown("### ℹ️ Informazioni")
+    if st.button("📋 INFO", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "INFO" else "secondary",
+                 key="sidebar_info"):
+        st.session_state.current_page = "INFO"
+        st.rerun()
+    
+    if st.button("🧪 TEST", use_container_width=True,
+                 type="primary" if st.session_state.current_page == "TEST" else "secondary",
+                 key="sidebar_test"):
+        st.session_state.current_page = "TEST"
+        st.rerun()
+    
+    st.markdown("---")
+    st.caption(f"📊 Watchlist: {len(st.session_state.watchlist)} asset")
+    if st.button("🔄 Svuota cache", use_container_width=True, key="clear_cache"):
+        st.cache_data.clear()
+        st.success("✅ Cache svuotata!")
+        st.rerun()
+    
+    st.markdown("---")
+    st.caption(f"🕒 {datetime.now().strftime('%H:%M:%S')}")
+    st.caption("⚠️ Solo scopo educativo")
+
+# ==================== HEADER ====================
 now = datetime.now()
 weekday = now.weekday()
 hour = now.hour
@@ -64,7 +115,7 @@ header_html = f"""
 """
 st.markdown(header_html, unsafe_allow_html=True)
 
-# Menu principale ridotto (solo le voci principali)
+# ==================== MENU PRINCIPALE (ridotto) ====================
 st.markdown("### Navigazione principale")
 menu_main = ["SCAN", "DETTAGLIO", "WATCHLIST"]
 cols = st.columns(len(menu_main))
@@ -78,42 +129,7 @@ for i, item in enumerate(menu_main):
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
-# Sidebar con le altre voci
-with st.sidebar:
-    st.markdown("### Strumenti")
-    if st.button("🛠️ STRUMENTI", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "STRUMENTI" else "secondary"):
-        st.session_state.current_page = "STRUMENTI"
-        st.rerun()
-    
-    if st.button("🤖 TRADING", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "TRADING" else "secondary"):
-        st.session_state.current_page = "TRADING"
-        st.rerun()
-    
-    if st.button("📡 API", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "API" else "secondary"):
-        st.session_state.current_page = "API"
-        st.rerun()
-    
-    st.markdown("### Informazioni")
-    if st.button("ℹ️ INFO", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "INFO" else "secondary"):
-        st.session_state.current_page = "INFO"
-        st.rerun()
-    
-    if st.button("🧪 TEST", use_container_width=True,
-                 type="primary" if st.session_state.current_page == "TEST" else "secondary"):
-        st.session_state.current_page = "TEST"
-        st.rerun()
-    
-    st.markdown("---")
-    st.caption(f"Watchlist: {len(st.session_state.watchlist)} asset")
-    if st.button("🔄 Svuota cache", use_container_width=True):
-        st.cache_data.clear()
-        st.success("Cache svuotata!")
-
-# Contenuto principale
+# ==================== CONTENUTO PRINCIPALE ====================
 with st.container():
     try:
         if st.session_state.current_page == "SCAN":
@@ -157,8 +173,10 @@ with st.container():
             render()
     except Exception as e:
         st.error(f"Errore: {e}")
+        if st.session_state.debug_mode:
+            st.exception(e)
 
-# Footer
+# ==================== FOOTER ====================
 footer_html = f"""
 <div class="trader-footer">
     <span>📅 {now.strftime("%d/%m/%Y %H:%M:%S")}</span>
