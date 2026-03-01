@@ -140,11 +140,12 @@ def render():
             st.info(f"📌 {test_sym} → {converted}")
 
         st.divider()
-        st.subheader("Polygon.io")
-        # Verifica presenza chiave
+                st.subheader("Polygon.io")
         polygon_key = st.secrets.get("POLYGON_KEY", "") or st.session_state.get('polygon_key', '')
         if not polygon_key:
             st.warning("⚠️ Chiave Polygon non trovata. Aggiungila in Configurazione o nei secrets.")
+
+        from utils.helpers import convert_symbol_for_polygon
 
         col_p1, col_p2 = st.columns(2)
         with col_p1:
@@ -153,23 +154,24 @@ def render():
                     if not polygon_key:
                         st.error("❌ Chiave mancante")
                     else:
-                        poly_symbol = "X:BTCUSD"
+                        poly_symbol = convert_symbol_for_polygon("BTC-USD")
                         df, src = polygon_provider.fetch_aggregates(poly_symbol, timespan='minute', multiplier=15, limit=100)
                         if df is not None:
                             st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
                         else:
-                            st.error(f"❌ Fallito: {src}. Verifica chiave o simbolo.")
+                            st.error(f"❌ Fallito: {src} (simbolo convertito: {poly_symbol})")
 
             if st.button("🟠 Test Polygon (AAPL)", use_container_width=True):
                 with st.spinner("Caricamento..."):
                     if not polygon_key:
                         st.error("❌ Chiave mancante")
                     else:
-                        df, src = polygon_provider.fetch_aggregates("AAPL", timespan='minute', multiplier=15, limit=100)
+                        poly_symbol = convert_symbol_for_polygon("AAPL")
+                        df, src = polygon_provider.fetch_aggregates(poly_symbol, timespan='minute', multiplier=15, limit=100)
                         if df is not None:
                             st.success(f"✅ {len(df)} candles da {src}, prezzo ${df['close'].iloc[-1]:,.2f}")
                         else:
-                            st.error(f"❌ Fallito: {src}. Verifica chiave o simbolo.")
+                            st.error(f"❌ Fallito: {src} (simbolo convertito: {poly_symbol})")
 
         with col_p2:
             if st.button("🟠 Test ricerca Polygon (bitcoin)", use_container_width=True):
