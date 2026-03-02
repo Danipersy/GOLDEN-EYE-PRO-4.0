@@ -3,7 +3,6 @@ import os
 from config import DEFAULT_WATCHLIST, WATCHLIST_FILE
 
 def load_watchlist():
-    """Carica la watchlist dal file JSON."""
     if os.path.exists(WATCHLIST_FILE):
         try:
             with open(WATCHLIST_FILE, "r", encoding="utf-8") as f:
@@ -15,7 +14,7 @@ def load_watchlist():
     return DEFAULT_WATCHLIST.copy()
 
 def save_watchlist(wl):
-    """Salva la watchlist su file JSON."""
+    """Salva la watchlist su file JSON - accetta UN argomento"""
     try:
         with open(WATCHLIST_FILE, "w", encoding="utf-8") as f:
             json.dump(wl, f, ensure_ascii=False, indent=2)
