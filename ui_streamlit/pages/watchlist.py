@@ -27,14 +27,16 @@ def show_page():
                         st.rerun()
                 with cols[2]:
                     if st.button("❌", key=f"del_{i}", help="Rimuovi"):
+                        # ✅ CORRETTO: passa solo la watchlist aggiornata
                         st.session_state.watchlist.pop(i)
-                        save_watchlist(WATCHLIST_FILE, st.session_state.watchlist)
+                        save_watchlist(st.session_state.watchlist)
                         st.rerun()
             st.caption(f"Totale: {len(st.session_state.watchlist)} asset")
 
         if st.button("🔄 Reset a default", use_container_width=True):
+            # ✅ CORRETTO: passa solo la watchlist
             st.session_state.watchlist = DEFAULT_WATCHLIST.copy()
-            save_watchlist(WATCHLIST_FILE, DEFAULT_WATCHLIST)
+            save_watchlist(st.session_state.watchlist)
             st.rerun()
 
     with col_ricerca:
@@ -58,7 +60,6 @@ def show_page():
                     exchange = r.get('exchange', '')
                     currency = r.get('currency', '')
 
-                    # Crea label descrittiva
                     label = symbol
                     details = []
                     if name:
@@ -85,7 +86,8 @@ def show_page():
                             add_symbol = symbol.replace("/", "-")
                             if add_symbol not in st.session_state.watchlist:
                                 st.session_state.watchlist.append(add_symbol)
-                                save_watchlist(WATCHLIST_FILE, st.session_state.watchlist)
+                                # ✅ CORRETTO: passa solo la watchlist
+                                save_watchlist(st.session_state.watchlist)
                                 st.success(f"✅ {add_symbol} aggiunto!")
                                 time.sleep(1)
                                 st.rerun()
@@ -108,7 +110,8 @@ def show_page():
         if st.button("➕ Aggiungi manuale", use_container_width=True) and manual_symbol:
             if manual_symbol not in st.session_state.watchlist:
                 st.session_state.watchlist.append(manual_symbol)
-                save_watchlist(WATCHLIST_FILE, st.session_state.watchlist)
+                # ✅ CORRETTO: passa solo la watchlist
+                save_watchlist(st.session_state.watchlist)
                 st.success(f"✅ {manual_symbol} aggiunto!")
                 st.rerun()
             else:
